@@ -1,0 +1,13 @@
+[project]
+name = "market-pulse"
+version = "0.1.0"
+description = "Market Pulse Radar app"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+dev-dependencies = [
+    "pytest",
+    "pre-commit",
+]
