@@ -1,0 +1,475 @@
+[
+  {
+    "title": "[A1][M0] Init repo & uv project",
+    "body": "- Create pyproject.toml (uv) and uv.lock\n- Ensure .venv is gitignored\n- Acceptance: `uv sync` works locally",
+    "labels": [
+      "epic:A Repo & Tooling",
+      "P0",
+      "size:S",
+      "area:infra"
+    ],
+    "milestone": "M0 \u2014 Scaffold & Infra"
+  },
+  {
+    "title": "[A2][M0] Pre-commit & style (ruff/black/mypy)",
+    "body": "- Configure pre-commit with ruff, black, mypy(strict)\n- Acceptance: `pre-commit run -a` passes",
+    "labels": [
+      "epic:A Repo & Tooling",
+      "P0",
+      "size:S",
+      "area:infra"
+    ],
+    "milestone": "M0 \u2014 Scaffold & Infra"
+  },
+  {
+    "title": "[A3][M0] Makefile & task aliases",
+    "body": "- up/down/logs/init-db/ingest/score/backtest targets\n- Acceptance: `make up` starts stack",
+    "labels": [
+      "epic:A Repo & Tooling",
+      "P0",
+      "size:S",
+      "area:infra"
+    ],
+    "milestone": "M0 \u2014 Scaffold & Infra"
+  },
+  {
+    "title": "[A4][M5] CI skeleton (GitHub Actions)",
+    "body": "- Lint, typecheck, tests matrix on PR\n- Acceptance: green CI on a dummy PR",
+    "labels": [
+      "epic:A Repo & Tooling",
+      "P1",
+      "size:M",
+      "area:infra"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[B1][M0] Docker Compose stack",
+    "body": "- Services: Postgres+Timescale+pgvector, MinIO, FastAPI, Prefect, Grafana, Prometheus, Loki\n- Healthchecks for each service",
+    "labels": [
+      "epic:B Infra",
+      "P0",
+      "size:M",
+      "area:infra"
+    ],
+    "milestone": "M0 \u2014 Scaffold & Infra"
+  },
+  {
+    "title": "[B2][M0] DB bootstrap (schema.sql + extensions)",
+    "body": "- Create tables & indexes; enable extensions\n- Acceptance: hypertables exist for signal & price_bar",
+    "labels": [
+      "epic:B Infra",
+      "P0",
+      "size:S",
+      "area:data"
+    ],
+    "milestone": "M0 \u2014 Scaffold & Infra"
+  },
+  {
+    "title": "[B3][M5] Alembic migrations",
+    "body": "- Hand-written migrations (no autogenerate)\n- Acceptance: `alembic upgrade head` works from empty DB",
+    "labels": [
+      "epic:B Infra",
+      "P1",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[C1][M0] Pydantic schemas (DTOs)",
+    "body": "- Article, TickerLink, Signal request/response models",
+    "labels": [
+      "epic:C Data Model & Config",
+      "P0",
+      "size:S",
+      "area:api"
+    ],
+    "milestone": "M0 \u2014 Scaffold & Infra"
+  },
+  {
+    "title": "[C2][M0] SQL models & repositories",
+    "body": "- SQLAlchemy models; typed query helpers",
+    "labels": [
+      "epic:C Data Model & Config",
+      "P0",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M0 \u2014 Scaffold & Infra"
+  },
+  {
+    "title": "[C3][M0] Config system (pydantic-settings + YAML)",
+    "body": "- configs/sources.yaml and configs/scoring.yaml\n- Acceptance: pipelines read from config",
+    "labels": [
+      "epic:C Data Model & Config",
+      "P0",
+      "size:S",
+      "area:infra"
+    ],
+    "milestone": "M0 \u2014 Scaffold & Infra"
+  },
+  {
+    "title": "[C4][M0] Seed ticker universe (NASDAQ/NYSE)",
+    "body": "- Load CSV \u2192 ticker(symbol,name,aliases)",
+    "labels": [
+      "epic:C Data Model & Config",
+      "P0",
+      "size:S",
+      "area:data"
+    ],
+    "milestone": "M0 \u2014 Scaffold & Infra"
+  },
+  {
+    "title": "[D1][M1] Collector base library",
+    "body": "- Interface: fetch(since) -> Iterable[Item]\n- Rate-limit/backoff; idempotent write to MinIO raw/",
+    "labels": [
+      "epic:D Collectors & Lake",
+      "P0",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M1 \u2014 Ingest \u2192 DB (GDELT)"
+  },
+  {
+    "title": "[D2][M1] GDELT collector",
+    "body": "- Pull last hour; map to Item; capture source_url/license/retrieved_at\n- Acceptance: \u2265100 items land in raw/",
+    "labels": [
+      "epic:D Collectors & Lake",
+      "P0",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M1 \u2014 Ingest \u2192 DB (GDELT)"
+  },
+  {
+    "title": "[D3][M1] Raw\u2192DB loader",
+    "body": "- Upsert Article; dedupe by url + title SimHash",
+    "labels": [
+      "epic:D Collectors & Lake",
+      "P0",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M1 \u2014 Ingest \u2192 DB (GDELT)"
+  },
+  {
+    "title": "[D4][M5] SEC RSS collector (8-K/10-Q/10-K)",
+    "body": "- OAuth not required; parse feed; map to Item",
+    "labels": [
+      "epic:D Collectors & Lake",
+      "P1",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[D5][M5] Stocktwits collector (cashtags)",
+    "body": "- OAuth token; filter posts with cashtags; store rate-limit meta",
+    "labels": [
+      "epic:D Collectors & Lake",
+      "P1",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[E1][M1] Normalizer",
+    "body": "- Lang detect (keep EN), strip boilerplate, canonicalize URLs\n- Write clean_events/",
+    "labels": [
+      "epic:E Normalize & Link",
+      "P0",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M1 \u2014 Ingest \u2192 DB (GDELT)"
+  },
+  {
+    "title": "[E2][M1] Ticker linker",
+    "body": "- Cashtags + symbol dict + synonyms; NER fallback; confidence scoring\n- Acceptance: \u226590% precision on 100 labeled items",
+    "labels": [
+      "epic:E Normalize & Link",
+      "P0",
+      "size:L",
+      "area:ml"
+    ],
+    "milestone": "M1 \u2014 Ingest \u2192 DB (GDELT)"
+  },
+  {
+    "title": "[F1][M2] Sentiment (FinBERT)",
+    "body": "- Prob pos/neg/neu; store per-article sentiment score",
+    "labels": [
+      "epic:F Features",
+      "P0",
+      "size:M",
+      "area:ml"
+    ],
+    "milestone": "M2 \u2014 Features & Signals"
+  },
+  {
+    "title": "[F2][M2] Embeddings (MiniLM)",
+    "body": "- 384-dim for title+lead; store in article_embed",
+    "labels": [
+      "epic:F Features",
+      "P0",
+      "size:S",
+      "area:ml"
+    ],
+    "milestone": "M2 \u2014 Features & Signals"
+  },
+  {
+    "title": "[F3][M2] Novelty metric",
+    "body": "- novelty = 1 - max cosine sim vs last 24h per-ticker",
+    "labels": [
+      "epic:F Features",
+      "P0",
+      "size:M",
+      "area:ml"
+    ],
+    "milestone": "M2 \u2014 Features & Signals"
+  },
+  {
+    "title": "[F4][M2] Velocity metric",
+    "body": "- Mention counts per ticker; z-score vs rolling 30d",
+    "labels": [
+      "epic:F Features",
+      "P0",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M2 \u2014 Features & Signals"
+  },
+  {
+    "title": "[G1][M2] Signal scoring engine",
+    "body": "- score = w1*sent + w2*novelty + w3*velocity + tag_boost\n- Store top-2 contributing articles per signal",
+    "labels": [
+      "epic:G Signals",
+      "P0",
+      "size:M",
+      "area:ml"
+    ],
+    "milestone": "M2 \u2014 Features & Signals"
+  },
+  {
+    "title": "[G2][M5] Tag rules (earnings/guidance/M&A)",
+    "body": "- Keyword rules + SEC doc types mapping",
+    "labels": [
+      "epic:G Signals",
+      "P1",
+      "size:S",
+      "area:data"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[H1][M3] Price adapter (Alpha Vantage, EOD)",
+    "body": "- Ingest daily bars into price_bar",
+    "labels": [
+      "epic:H Market Data & Backtest",
+      "P0",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M3 \u2014 Market Data & Backtests"
+  },
+  {
+    "title": "[H2][M3] Returns join & leak checks",
+    "body": "- Align to market open/close; no look-ahead",
+    "labels": [
+      "epic:H Market Data & Backtest",
+      "P0",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M3 \u2014 Market Data & Backtests"
+  },
+  {
+    "title": "[H3][M3] Backtest metrics",
+    "body": "- IC (Spearman), top-decile return, hit-rate; JSON artifact",
+    "labels": [
+      "epic:H Market Data & Backtest",
+      "P0",
+      "size:S",
+      "area:ml"
+    ],
+    "milestone": "M3 \u2014 Market Data & Backtests"
+  },
+  {
+    "title": "[H4][M3] Backtest CLI & PNG charts",
+    "body": "- CLI entrypoint; save artifacts/plots",
+    "labels": [
+      "epic:H Market Data & Backtest",
+      "P1",
+      "size:S",
+      "area:ml"
+    ],
+    "milestone": "M3 \u2014 Market Data & Backtests"
+  },
+  {
+    "title": "[I1][M4] FastAPI app & healthcheck",
+    "body": "- App factory, /health, OpenAPI at /docs",
+    "labels": [
+      "epic:I API & UI",
+      "P0",
+      "size:S",
+      "area:api"
+    ],
+    "milestone": "M4 \u2014 API + Minimal UI + Observability"
+  },
+  {
+    "title": "[I2][M4] GET /signals endpoint",
+    "body": "- Filters: ticker, from, to; pagination",
+    "labels": [
+      "epic:I API & UI",
+      "P0",
+      "size:M",
+      "area:api"
+    ],
+    "milestone": "M4 \u2014 API + Minimal UI + Observability"
+  },
+  {
+    "title": "[I3][M4] GET /explain endpoint",
+    "body": "- Returns contributing articles + excerpts",
+    "labels": [
+      "epic:I API & UI",
+      "P0",
+      "size:S",
+      "area:api"
+    ],
+    "milestone": "M4 \u2014 API + Minimal UI + Observability"
+  },
+  {
+    "title": "[I4][M4] GET /backtest endpoint",
+    "body": "- Returns metrics snapshot",
+    "labels": [
+      "epic:I API & UI",
+      "P1",
+      "size:S",
+      "area:api"
+    ],
+    "milestone": "M4 \u2014 API + Minimal UI + Observability"
+  },
+  {
+    "title": "[I5][M4] Minimal UI (heatmap + ticker card)",
+    "body": "- Tailwind; source badges; inviting styling",
+    "labels": [
+      "epic:I API & UI",
+      "P1",
+      "size:M",
+      "area:ui"
+    ],
+    "milestone": "M4 \u2014 API + Minimal UI + Observability"
+  },
+  {
+    "title": "[J1][M4] Prometheus metrics",
+    "body": "- Ingest throughput, lag, dedupe rate, model timings",
+    "labels": [
+      "epic:J Observability & Ops",
+      "P0",
+      "size:S",
+      "area:ops"
+    ],
+    "milestone": "M4 \u2014 API + Minimal UI + Observability"
+  },
+  {
+    "title": "[J2][M4] Grafana dashboards",
+    "body": "- Overview, Ingest, Features, Signals dashboards",
+    "labels": [
+      "epic:J Observability & Ops",
+      "P0",
+      "size:S",
+      "area:ops"
+    ],
+    "milestone": "M4 \u2014 API + Minimal UI + Observability"
+  },
+  {
+    "title": "[J3][M5] Loki structured logs + trace IDs",
+    "body": "- JSON logs; correlation IDs across services",
+    "labels": [
+      "epic:J Observability & Ops",
+      "P1",
+      "size:S",
+      "area:ops"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[J4][M5] Prefect deployments & schedules",
+    "body": "- Ingest/score/backtest scheduled flows",
+    "labels": [
+      "epic:J Observability & Ops",
+      "P1",
+      "size:M",
+      "area:ops"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[K1][M4] Secrets handling",
+    "body": "- .env locally; CI repo secrets; no secrets in repo",
+    "labels": [
+      "epic:K Security & Data Quality",
+      "P0",
+      "size:S",
+      "area:ops"
+    ],
+    "milestone": "M4 \u2014 API + Minimal UI + Observability"
+  },
+  {
+    "title": "[K2][M4] Licensing & attribution",
+    "body": "- Surface source + license in API/UI",
+    "labels": [
+      "epic:K Security & Data Quality",
+      "P0",
+      "size:S",
+      "area:ops"
+    ],
+    "milestone": "M4 \u2014 API + Minimal UI + Observability"
+  },
+  {
+    "title": "[K3][M5] Data quality checks",
+    "body": "- Duplicate %, language drift, linker precision sample",
+    "labels": [
+      "epic:K Security & Data Quality",
+      "P1",
+      "size:M",
+      "area:data"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[L1][M5] README polish (diagram + gifs)",
+    "body": "- Architecture diagram; quickstart gif",
+    "labels": [
+      "epic:L Docs & Polish",
+      "P0",
+      "size:S",
+      "area:docs"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[L2][M5] Demo seed script",
+    "body": "- scripts/demo_seed.py to populate small dataset",
+    "labels": [
+      "epic:L Docs & Polish",
+      "P1",
+      "size:S",
+      "area:docs"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  },
+  {
+    "title": "[L3][M5] Issue templates",
+    "body": "- bug/feature/chore templates under .github/ISSUE_TEMPLATE",
+    "labels": [
+      "epic:L Docs & Polish",
+      "P1",
+      "size:S",
+      "area:docs"
+    ],
+    "milestone": "M5 \u2014 Extra Sources & Hardening"
+  }
+]
