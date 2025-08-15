@@ -40,7 +40,7 @@ typecheck: ## run type checking
 	uv run mypy .
 
 security: ## run security checks
-	uv run bandit -r . -f json -o bandit-report.json --exclude .venv,scripts/ || true
+	uv run bandit -r . --exclude .venv,scripts/ || true
 
 ci: ## run all CI checks locally
 	$(MAKE) lint
