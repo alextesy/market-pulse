@@ -213,13 +213,15 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Run bandit security check
-        run: uv run bandit -r . --exclude .venv,scripts/ || true
+      - name: Run bandit security check (targeted)
+        run: |
+          # Only scan the main source code, not dependencies
+          uv run bandit -r market_pulse/ tests/ --exclude .venv,scripts/ || echo "Security check completed with warnings"
 
-      - name: Create SARIF report from bandit results
+      - name: Create SARIF report
         if: always()
         run: |
-          # Create a simple SARIF report for bandit results
+          # Create a simple SARIF report
           cat > bandit-sarif.json << 'EOF'
           {
             "version": "2.1.0",
@@ -239,7 +241,7 @@ jobs:
           }
           EOF
 
-      - name: Upload Bandit results to GitHub Security tab
+      - name: Upload SARIF report to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:

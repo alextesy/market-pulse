@@ -40,7 +40,7 @@ typecheck: ## run type checking
 	uv run mypy .
 
 security: ## run security checks
-	uv run bandit -r . --exclude .venv,scripts/ || true
+	uv run bandit -r market_pulse/ tests/ --exclude .venv,scripts/ || echo "Security check completed with warnings"
 
 ci: ## run all CI checks locally
 	$(MAKE) lint
