@@ -35,9 +35,10 @@ The CI pipeline runs on every push to `main`/`dev` branches and on every Pull Re
 
 ### 5. Security Check Job
 - **Purpose**: Identifies potential security vulnerabilities
-- **Tools**: `bandit`
-- **Output**: SARIF format for GitHub Security tab
+- **Tools**: `bandit` (targeted scan of source code only)
+- **Output**: Console output with security findings
 - **Failure**: Non-blocking (warnings only)
+- **Note**: GitHub Security tab integration requires code scanning to be enabled in repository settings
 
 ## Local Development
 

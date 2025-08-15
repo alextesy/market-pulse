@@ -218,31 +218,10 @@ jobs:
           # Only scan the main source code, not dependencies
           uv run bandit -r market_pulse/ tests/ --exclude .venv,scripts/ || echo "Security check completed with warnings"
 
-      - name: Create SARIF report
+      - name: Security check summary
         if: always()
         run: |
-          # Create a simple SARIF report
-          cat > bandit-sarif.json << 'EOF'
-          {
-            "version": "2.1.0",
-            "$schema": "https://json.schemastore.org/sarif-2.1.0-rtm.5.json",
-            "runs": [
-              {
-                "tool": {
-                  "driver": {
-                    "name": "Bandit",
-                    "version": "1.8.6",
-                    "informationUri": "https://bandit.readthedocs.io/"
-                  }
-                },
-                "results": []
-              }
-            ]
-          }
-          EOF
-
-      - name: Upload SARIF report to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: bandit-sarif.json
+          echo "✅ Security check completed"
+          echo "📊 Bandit scanned the source code for potential security issues"
+          echo "🔍 Results are shown in the job output above"
+          echo "💡 To enable GitHub Security tab integration, enable code scanning in repository settings"

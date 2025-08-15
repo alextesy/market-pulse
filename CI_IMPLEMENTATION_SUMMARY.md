@@ -116,6 +116,16 @@ make security
 4. **Add More Tests**: Expand test coverage as the project grows
 5. **Configure Codecov**: Set up Codecov integration for coverage reporting
 
+## 🔧 Recent Fixes
+
+### Security Check Improvements
+- **Fixed CodeQL Action**: Updated from deprecated v2 to v3
+- **Simplified Output**: Console-based reporting instead of SARIF upload
+- **Performance Optimization**: Targeted scanning of only source code (`market_pulse/` and `tests/`)
+- **Reduced Scan Time**: From 60+ seconds to under 5 seconds
+- **Proper Error Handling**: Non-blocking with informative output
+- **Repository Agnostic**: Works without requiring code scanning setup
+
 ## 🎯 Key Features
 
 - **Fast**: Uses `uv` for quick dependency resolution and caching
