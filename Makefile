@@ -21,4 +21,30 @@ score: ## recompute signals for last N hours
 backtest: ## run backtest
 	uv run python -m pipelines.backtest --window 1d
 
-.PHONY: up down logs init-db ingest score backtest
+# CI and testing commands
+test: ## run tests
+	uv run pytest
+
+test-cov: ## run tests with coverage
+	uv run pytest --cov --cov-report=html --cov-report=term-missing
+
+lint: ## run linting
+	uv run ruff check .
+	uv run black --check --diff .
+
+lint-fix: ## run linting and fix issues
+	uv run ruff check --fix .
+	uv run black .
+
+typecheck: ## run type checking
+	uv run mypy .
+
+security: ## run security checks
+	uv run bandit -r . -f json -o bandit-report.json --exclude .venv,scripts/ || true
+
+ci: ## run all CI checks locally
+	$(MAKE) lint
+	$(MAKE) typecheck
+	$(MAKE) test
+
+.PHONY: up down logs init-db ingest score backtest test test-cov lint lint-fix typecheck security ci

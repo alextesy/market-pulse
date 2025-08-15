@@ -1,0 +1,86 @@
+name: Test PR Creation
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: true
+        default: 'basic'
+        type: choice
+        options:
+          - basic
+          - lint-error
+          - type-error
+          - test-failure
+
+jobs:
+  create-test-pr:
+    name: Create Test PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create test branch
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git checkout -b test/ci-validation-${{ github.run_number }}
+
+      - name: Create test file
+        run: |
+          echo "# Test PR for CI validation" > test-ci-${{ github.run_number }}.md
+          echo "This PR was created to test the CI pipeline." >> test-ci-${{ github.run_number }}.md
+          echo "Created at: $(date)" >> test-ci-${{ github.run_number }}.md
+          echo "Test type: ${{ inputs.test_type }}" >> test-ci-${{ github.run_number }}.md
+
+      - name: Create intentional error for testing
+        if: inputs.test_type == 'lint-error'
+        run: |
+          echo "def bad_function(  # Intentional lint error" > test_lint_error.py
+
+      - name: Create intentional type error for testing
+        if: inputs.test_type == 'type-error'
+        run: |
+          echo "def type_error_function(x: str) -> int:" > test_type_error.py
+          echo "    return x  # Type error: returning str instead of int" >> test_type_error.py
+
+      - name: Create intentional test failure for testing
+        if: inputs.test_type == 'test-failure'
+        run: |
+          echo "def test_that_fails():" > tests/test_failure.py
+          echo "    assert False, 'Intentional test failure'" >> tests/test_failure.py
+
+      - name: Commit and push
+        run: |
+          git add .
+          git commit -m "test: Add CI validation test (${{ inputs.test_type }})"
+          git push origin test/ci-validation-${{ github.run_number }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: test/ci-validation-${{ github.run_number }}
+          title: "test: CI validation (${{ inputs.test_type }})"
+          body: |
+            This is a test PR to validate the CI pipeline.
+            
+            **Test Type:** ${{ inputs.test_type }}
+            **Created by:** GitHub Action
+            **Purpose:** Validate that CI jobs work correctly
+            
+            - [ ] Lint job passes
+            - [ ] Type check job passes  
+            - [ ] Test job passes
+            - [ ] Integration test job passes
+            - [ ] Security check job passes
+            
+            This PR should be automatically closed after validation.
+          labels: |
+            test
+            ci-validation
+          delete-branch: true
