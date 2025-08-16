@@ -1,0 +1,11 @@
+weights:
+  sentiment: 0.4
+  novelty: 0.3
+  velocity: 0.3
+boosts:
+  earnings: 0.2
+  guidance: 0.1
+  mna: 0.25
+thresholds:
+  rising_velocity_z: 2.0
+  fresh_novelty: 0.6

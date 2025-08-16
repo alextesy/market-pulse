@@ -1,0 +1,11 @@
+gdelt:
+  enabled: true
+  schedule: 'hourly'
+  rate_limit_per_min: 60
+  fields_keep: [url, title, content, lang, published_at]
+sec:
+  enabled: true
+  schedule: 'hourly'
+  forms: [8-K, 10-Q, 10-K]
+stocktwits:
+  enabled: false  # enable later
