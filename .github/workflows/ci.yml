@@ -114,8 +114,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Run tests
-        run: uv run pytest --cov --cov-report=xml --cov-report=term-missing
+      - name: Run unit tests (excluding integration tests)
+        run: uv run pytest -m "not integration" --cov --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -131,10 +131,10 @@ jobs:
     needs: [lint, typecheck, test]
     services:
       postgres:
-        image: postgres:16
+        image: timescale/timescaledb:latest-pg16
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: market
+          POSTGRES_DB: market_pulse
           POSTGRES_USER: postgres
         options: >-
           --health-cmd pg_isready
@@ -171,6 +171,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
       - name: Wait for postgres
         run: |
           until pg_isready -h localhost -p 5432 -U postgres; do
@@ -178,10 +181,23 @@ jobs:
             sleep 2
           done
 
+      - name: Initialize database
+        env:
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/market_pulse
+        run: |
+          # Enable extensions
+          psql $POSTGRES_URL -c "CREATE EXTENSION IF NOT EXISTS timescaledb;"
+          psql $POSTGRES_URL -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+      - name: Run migrations
+        env:
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/market_pulse
+        run: uv run alembic upgrade head
+
       - name: Run integration tests
         env:
-          POSTGRES_URL: postgresql+psycopg://postgres:postgres@localhost:5432/market
-        run: uv run pytest tests/integration/ -v
+          POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/market_pulse
+        run: uv run pytest -m integration -v
 
   security:
     name: Security Check
