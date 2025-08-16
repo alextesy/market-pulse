@@ -1,0 +1,155 @@
+# Manual ticker aliases for Market Pulse
+# This file contains additional aliases that may not be captured by automated processing
+
+aliases:
+  # Major companies with multiple common names
+  AAPL:
+    - "apple"
+    - "apple computer"
+    - "apple inc"
+    - "iphone company"
+    - "ipad company"
+  
+  MSFT:
+    - "microsoft"
+    - "microsoft corp"
+    - "windows company"
+    - "office company"
+  
+  GOOGL:
+    - "google"
+    - "alphabet"
+    - "alphabet inc"
+    - "search company"
+  
+  AMZN:
+    - "amazon"
+    - "amazon.com"
+    - "amazon.com inc"
+    - "ecommerce company"
+  
+  TSLA:
+    - "tesla"
+    - "tesla motors"
+    - "tesla inc"
+    - "electric car company"
+  
+  META:
+    - "facebook"
+    - "fb"
+    - "meta platforms"
+    - "social media company"
+  
+  NVDA:
+    - "nvidia"
+    - "nvidia corporation"
+    - "gpu company"
+    - "ai chip company"
+  
+  # Financial companies
+  JPM:
+    - "jp morgan"
+    - "jpmorgan"
+    - "jpmorgan chase"
+    - "jpmorgan chase & co"
+  
+  BAC:
+    - "bank of america"
+    - "bofa"
+    - "bank of america corporation"
+  
+  WFC:
+    - "wells fargo"
+    - "wells fargo & co"
+  
+  # Consumer companies
+  WMT:
+    - "walmart"
+    - "wal-mart"
+    - "wal-mart stores"
+  
+  DIS:
+    - "disney"
+    - "walt disney"
+    - "walt disney company"
+  
+  KO:
+    - "coca-cola"
+    - "coke"
+    - "coca cola"
+    - "coca-cola company"
+  
+  MCD:
+    - "mcdonalds"
+    - "mcdonald's"
+    - "mcdonalds corporation"
+  
+  # Technology companies
+  NFLX:
+    - "netflix"
+    - "netflix inc"
+    - "streaming company"
+  
+  ADBE:
+    - "adobe"
+    - "adobe inc"
+    - "photoshop company"
+  
+  CRM:
+    - "salesforce"
+    - "salesforce.com"
+    - "salesforce inc"
+  
+  # Healthcare companies
+  JNJ:
+    - "johnson & johnson"
+    - "jnj"
+    - "pharmaceutical company"
+  
+  PFE:
+    - "pfizer"
+    - "pfizer inc"
+    - "vaccine company"
+  
+  # Energy companies
+  XOM:
+    - "exxon"
+    - "exxon mobil"
+    - "exxonmobil"
+    - "exxon mobil corporation"
+  
+  CVX:
+    - "chevron"
+    - "chevron corporation"
+  
+  # Special cases
+  BRK.A:
+    - "berkshire"
+    - "berkshire hathaway"
+    - "berkshire hathaway inc"
+    - "warren buffett company"
+  
+  BRK.B:
+    - "berkshire"
+    - "berkshire hathaway"
+    - "berkshire hathaway inc"
+    - "warren buffett company"
+
+# Common abbreviations and slang
+common_abbreviations:
+  # Sectors
+  "tech": ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA"]
+  "finance": ["JPM", "BAC", "WFC", "GS", "MS"]
+  "healthcare": ["JNJ", "PFE", "UNH", "ABBV", "TMO"]
+  "energy": ["XOM", "CVX", "COP", "EOG", "SLB"]
+  
+  # Market cap categories
+  "mega cap": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "BRK.A", "BRK.B"]
+  "large cap": ["JPM", "JNJ", "V", "PG", "HD"]
+  "mid cap": ["AMD", "NFLX", "ADBE", "CRM", "PYPL"]
+  
+  # Popular ETFs
+  "spy": ["SPY"]  # S&P 500 ETF
+  "qqq": ["QQQ"]  # NASDAQ 100 ETF
+  "dia": ["DIA"]  # Dow Jones ETF
+  "vti": ["VTI"]  # Total Market ETF
