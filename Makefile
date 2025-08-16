@@ -10,6 +10,12 @@ logs: ## follow logs
 init-db: ## create schema & extensions
 	psql $$POSTGRES_URL -f sql/schema.sql
 
+migrate: ## run alembic migrations
+	uv run alembic upgrade head
+
+seed-tickers: ## seed ticker data
+	uv run python -m scripts.seed_tickers
+
 ingest: ## run all collectors once
 	uv run python -m collectors.gdelt && \
 	uv run python -m collectors.sec && \
@@ -47,4 +53,4 @@ ci: ## run all CI checks locally
 	$(MAKE) typecheck
 	$(MAKE) test
 
-.PHONY: up down logs init-db ingest score backtest test test-cov lint lint-fix typecheck security ci
+.PHONY: up down logs init-db migrate seed-tickers ingest score backtest test test-cov lint lint-fix typecheck security ci
