@@ -1,8 +1,9 @@
 """Example: Mapping GDELT JSON data to Market Pulse DTOs."""
 
 import json
-from datetime import datetime, timezone
-from market_pulse.models.dto import IngestItem, ArticleDTO
+from datetime import datetime
+
+from market_pulse.models.dto import IngestItem
 from market_pulse.models.mappers import ingest_item_to_article
 
 
@@ -24,17 +25,21 @@ def create_sample_gdelt_data() -> dict:
             "goldstein_scale": 0.8,
             "num_mentions": 15,
             "num_sources": 8,
-            "num_articles": 12
-        }
+            "num_articles": 12,
+        },
     }
 
 
 def map_gdelt_to_ingest_item(gdelt_data: dict) -> IngestItem:
     """Map GDELT JSON data to IngestItem."""
     # Parse datetime strings
-    published_at = datetime.fromisoformat(gdelt_data["published_at"].replace("Z", "+00:00"))
-    retrieved_at = datetime.fromisoformat(gdelt_data["retrieved_at"].replace("Z", "+00:00"))
-    
+    published_at = datetime.fromisoformat(
+        gdelt_data["published_at"].replace("Z", "+00:00")
+    )
+    retrieved_at = datetime.fromisoformat(
+        gdelt_data["retrieved_at"].replace("Z", "+00:00")
+    )
+
     return IngestItem(
         source=gdelt_data["source"],
         source_id=gdelt_data["source_id"],
@@ -46,20 +51,20 @@ def map_gdelt_to_ingest_item(gdelt_data: dict) -> IngestItem:
         lang=gdelt_data["lang"].lower(),
         license=gdelt_data.get("license"),
         author=gdelt_data.get("author"),
-        meta=gdelt_data.get("meta", {})
+        meta=gdelt_data.get("meta", {}),
     )
 
 
 def main():
     """Demonstrate the complete mapping workflow."""
     print("=== GDELT to Market Pulse DTO Mapping Example ===\n")
-    
+
     # Create sample GDELT data
     gdelt_data = create_sample_gdelt_data()
     print("1. Sample GDELT JSON data:")
     print(json.dumps(gdelt_data, indent=2))
     print()
-    
+
     # Map to IngestItem
     ingest_item = map_gdelt_to_ingest_item(gdelt_data)
     print("2. Mapped to IngestItem:")
@@ -71,7 +76,7 @@ def main():
     print(f"   Author: {ingest_item.author}")
     print(f"   Meta keys: {list(ingest_item.meta.keys())}")
     print()
-    
+
     # Transform to ArticleDTO
     article = ingest_item_to_article(ingest_item)
     print("3. Transformed to ArticleDTO (ready for DB):")
@@ -83,7 +88,7 @@ def main():
     print(f"   Hash: {article.hash}")
     print(f"   Credibility: {article.credibility}")
     print()
-    
+
     # Show the transformation effects
     print("4. Transformation Effects:")
     print(f"   Original URL: {gdelt_data['url']}")
@@ -93,7 +98,7 @@ def main():
     print(f"   Original Text: {gdelt_data['text'][:50]}...")
     print(f"   Clean Text: {article.text[:50]}...")
     print()
-    
+
     # Serialize to JSON for storage
     article_dict = article.model_dump()
     print("5. ArticleDTO as dict (ready for DB insert):")

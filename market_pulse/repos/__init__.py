@@ -1,17 +1,17 @@
 """Repository modules for Market Pulse."""
 
-from .base import BaseRepository
 from .article import ArticleRepository
+from .base import BaseRepository
 from .embed import EmbedRepository
-from .ticker import TickerRepository
-from .signal import SignalRepository
 from .price_bar import PriceBarRepository
+from .signal import SignalRepository
+from .ticker import TickerRepository
 
 __all__ = [
-    'BaseRepository',
-    'ArticleRepository',
-    'EmbedRepository',
-    'TickerRepository',
-    'SignalRepository',
-    'PriceBarRepository',
+    "BaseRepository",
+    "ArticleRepository",
+    "EmbedRepository",
+    "TickerRepository",
+    "SignalRepository",
+    "PriceBarRepository",
 ]

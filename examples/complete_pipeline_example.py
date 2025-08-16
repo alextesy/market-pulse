@@ -1,16 +1,14 @@
 """Complete data pipeline example showing how all DTOs work together."""
 
-import json
 from datetime import datetime, timezone
+
 from market_pulse.models.dto import (
-    IngestItem,
-    ArticleDTO,
-    TickerLinkDTO,
-    SentimentDTO,
-    ArticleTickerDTO,
     EmbeddingDTO,
-    SignalDTO,
+    IngestItem,
     PriceBarDTO,
+    SentimentDTO,
+    SignalDTO,
+    TickerLinkDTO,
 )
 from market_pulse.models.mappers import (
     ingest_item_to_article,
@@ -20,132 +18,132 @@ from market_pulse.models.mappers import (
 
 def demonstrate_complete_pipeline():
     """Demonstrate the complete data pipeline from raw data to signals."""
-    
+
     print("=== Complete Market Pulse Data Pipeline ===\n")
-    
+
     # Step 1: Raw data ingestion (GDELT, SEC, etc.)
     print("1. RAW DATA INGESTION")
     print("-" * 40)
-    
+
     ingest_item = IngestItem(
-        source='gdelt',
-        source_id='20231201120000-1234567890',
-        url='https://www.reuters.com/business/finance/apple-stock-rises-earnings-beat-expectations?utm_source=google',
+        source="gdelt",
+        source_id="20231201120000-1234567890",
+        url="https://www.reuters.com/business/finance/apple-stock-rises-earnings-beat-expectations?utm_source=google",
         published_at=datetime.now(timezone.utc),
         retrieved_at=datetime.now(timezone.utc),
-        title='<h1>Apple Stock Rises After Earnings Beat Expectations</h1>',
-        text='<p>Apple Inc. (AAPL) reported quarterly earnings that exceeded analyst expectations, sending the stock higher in after-hours trading.</p>',
-        lang='en',
-        license='Reuters',
-        author='Reuters Staff',
-        meta={'gdelt_event_id': '1234567890'}
+        title="<h1>Apple Stock Rises After Earnings Beat Expectations</h1>",
+        text="<p>Apple Inc. (AAPL) reported quarterly earnings that exceeded analyst expectations, sending the stock higher in after-hours trading.</p>",
+        lang="en",
+        license="Reuters",
+        author="Reuters Staff",
+        meta={"gdelt_event_id": "1234567890"},
     )
-    
-    print(f"   Raw IngestItem created:")
+
+    print("   Raw IngestItem created:")
     print(f"   - Source: {ingest_item.source}")
     print(f"   - URL: {ingest_item.url}")
     print(f"   - Title: {ingest_item.title}")
     print(f"   - Meta: {ingest_item.meta}")
     print()
-    
+
     # Step 2: Transform to normalized article
     print("2. NORMALIZATION & CLEANING")
     print("-" * 40)
-    
+
     article = ingest_item_to_article(ingest_item)
-    print(f"   ArticleDTO created (ready for DB):")
+    print("   ArticleDTO created (ready for DB):")
     print(f"   - Clean URL: {article.url}")
     print(f"   - Clean Title: {article.title}")
     print(f"   - Hash: {article.hash}")
     print(f"   - Credibility: {article.credibility}")
     print()
-    
+
     # Step 3: Ticker linking processing
     print("3. TICKER LINKING PROCESSING")
     print("-" * 40)
-    
+
     # TickerLinkDTO - Processing result (not stored directly in DB)
     ticker_link = TickerLinkDTO(
-        ticker='AAPL',
+        ticker="AAPL",
         confidence=0.95,
-        method='cashtag',
-        matched_terms=['AAPL', 'Apple'],
+        method="cashtag",
+        matched_terms=["AAPL", "Apple"],
         char_spans=[(0, 4), (10, 15)],
-        article_id=None  # Will be set after article is inserted
+        article_id=None,  # Will be set after article is inserted
     )
-    
-    print(f"   TickerLinkDTO created (processing result):")
+
+    print("   TickerLinkDTO created (processing result):")
     print(f"   - Ticker: {ticker_link.ticker}")
     print(f"   - Confidence: {ticker_link.confidence}")
     print(f"   - Method: {ticker_link.method}")
     print(f"   - Matched Terms: {ticker_link.matched_terms}")
     print(f"   - Character Spans: {ticker_link.char_spans}")
     print()
-    
+
     # Step 4: Sentiment analysis processing
     print("4. SENTIMENT ANALYSIS PROCESSING")
     print("-" * 40)
-    
+
     # SentimentDTO - Processing result (not stored directly in DB)
     sentiment = SentimentDTO(
         prob_pos=0.75,
         prob_neg=0.15,
         prob_neu=0.10,
         score=0.60,  # pos - neg
-        model='bert-base-sentiment',
-        model_rev='v1.0'
+        model="bert-base-sentiment",
+        model_rev="v1.0",
     )
-    
-    print(f"   SentimentDTO created (processing result):")
+
+    print("   SentimentDTO created (processing result):")
     print(f"   - Positive: {sentiment.prob_pos}")
     print(f"   - Negative: {sentiment.prob_neg}")
     print(f"   - Neutral: {sentiment.prob_neu}")
     print(f"   - Score: {sentiment.score}")
     print(f"   - Model: {sentiment.model}")
     print()
-    
+
     # Step 5: Database storage preparation
     print("5. DATABASE STORAGE PREPARATION")
     print("-" * 40)
-    
+
     # Simulate article insertion (would get ID from DB)
     article_id = 123  # This would come from DB insert
-    
+
     # Convert TickerLinkDTO to ArticleTickerDTO for DB storage
     article_ticker = ticker_link_to_article_ticker(ticker_link, article_id)
-    print(f"   ArticleTickerDTO created (for DB storage):")
+    print("   ArticleTickerDTO created (for DB storage):")
     print(f"   - Article ID: {article_ticker.article_id}")
     print(f"   - Ticker: {article_ticker.ticker}")
     print(f"   - Confidence: {article_ticker.confidence}")
     print()
-    
+
     # Create embedding for DB storage
     embedding = EmbeddingDTO(
         article_id=article_id,
-        embedding=[0.1] * 384  # Would be generated by embedding model
+        embedding=[0.1] * 384,  # Would be generated by embedding model
     )
-    print(f"   EmbeddingDTO created (for DB storage):")
+    print("   EmbeddingDTO created (for DB storage):")
     print(f"   - Article ID: {embedding.article_id}")
     print(f"   - Dimensions: {len(embedding.embedding)}")
     print()
-    
+
     # Step 6: Signal generation (aggregating multiple articles)
     print("6. SIGNAL GENERATION")
     print("-" * 40)
-    
+
     # SignalDTO - Aggregated from multiple articles
     signal = SignalDTO(
-        ticker='AAPL',
+        ticker="AAPL",
         ts=datetime.now(timezone.utc),
         sentiment=0.65,  # Aggregated from multiple articles
-        novelty=0.45,    # Calculated from article similarity
-        velocity=0.80,   # Rate of new articles
-        event_tags=['earnings', 'guidance', 'beat'],
-        score=0.72,      # Composite signal score
-        contributors=[123, 124]  # Article IDs that contributed
+        novelty=0.45,  # Calculated from article similarity
+        velocity=0.80,  # Rate of new articles
+        event_tags=["earnings", "guidance", "beat"],
+        score=0.72,  # Composite signal score
+        contributors=[123, 124],  # Article IDs that contributed
     )
-    
-    print(f"   SignalDTO created (aggregated from multiple articles):")
+
+    print("   SignalDTO created (aggregated from multiple articles):")
     print(f"   - Ticker: {signal.ticker}")
     print(f"   - Sentiment: {signal.sentiment}")
     print(f"   - Novelty: {signal.novelty}")
@@ -154,23 +152,23 @@ def demonstrate_complete_pipeline():
     print(f"   - Score: {signal.score}")
     print(f"   - Contributors: {signal.contributors}")
     print()
-    
+
     # Step 7: Price data (external source)
     print("7. PRICE DATA")
     print("-" * 40)
-    
+
     price_bar = PriceBarDTO(
-        ticker='AAPL',
+        ticker="AAPL",
         ts=datetime.now(timezone.utc),
         o=150.00,
         h=155.50,
         l=149.75,
         c=152.25,
         v=1000000,
-        timeframe='1d'
+        timeframe="1d",
     )
-    
-    print(f"   PriceBarDTO created (from market data):")
+
+    print("   PriceBarDTO created (from market data):")
     print(f"   - Ticker: {price_bar.ticker}")
     print(f"   - Open: ${price_bar.o}")
     print(f"   - High: ${price_bar.h}")
@@ -179,11 +177,11 @@ def demonstrate_complete_pipeline():
     print(f"   - Volume: {price_bar.v:,}")
     print(f"   - Timeframe: {price_bar.timeframe}")
     print()
-    
+
     # Step 8: Show database storage summary
     print("8. DATABASE STORAGE SUMMARY")
     print("-" * 40)
-    
+
     print("   Tables that get populated:")
     print("   - article: Stores ArticleDTO")
     print("   - article_ticker: Stores ArticleTickerDTO")
@@ -191,16 +189,16 @@ def demonstrate_complete_pipeline():
     print("   - signal: Stores SignalDTO (aggregated)")
     print("   - price_bar: Stores PriceBarDTO")
     print()
-    
+
     print("   Processing DTOs (not stored directly):")
     print("   - TickerLinkDTO: Used for ticker linking, converted to ArticleTickerDTO")
     print("   - SentimentDTO: Used for sentiment analysis, aggregated into SignalDTO")
     print()
-    
+
     # Step 9: Show the complete data flow
     print("9. COMPLETE DATA FLOW")
     print("-" * 40)
-    
+
     print("   Raw Data → IngestItem")
     print("   ↓")
     print("   Clean & Normalize → ArticleDTO → article table")
@@ -215,7 +213,7 @@ def demonstrate_complete_pipeline():
     print("   ↓")
     print("   Market Data → PriceBarDTO → price_bar table")
     print()
-    
+
     print("   Processing DTOs serve as intermediate data structures")
     print("   that get transformed into database-ready DTOs.")
 
