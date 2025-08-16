@@ -12,6 +12,7 @@ dependencies = [
     "psycopg>=3.0.0",
     "alembic>=1.13.0",
     "pgvector>=0.2.0",
+    "PyYAML>=6.0.1",
 ]
 
 [tool.uv]
@@ -23,6 +24,7 @@ dev-dependencies = [
     "pytest-cov",
     "ruff",
     "bandit",
+    "types-PyYAML",
 ]
 
 [tool.black]
