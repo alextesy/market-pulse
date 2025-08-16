@@ -21,19 +21,19 @@ app.add_middleware(
 
 
 @app.get("/")
-async def root():
+async def root() -> dict[str, str]:
     """Root endpoint."""
     return {"message": "Market Pulse Radar API", "version": "0.1.0"}
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict[str, str]:
     """Health check endpoint for docker-compose healthcheck."""
     return {"status": "healthy", "service": "market-pulse-api"}
 
 
 @app.get("/metrics")
-async def metrics():
+async def metrics() -> dict[str, str]:
     """Prometheus metrics endpoint."""
     # TODO: Add actual metrics collection
     return {"status": "metrics endpoint ready"}

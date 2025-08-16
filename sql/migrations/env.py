@@ -29,9 +29,12 @@ target_metadata = None
 # ... etc.
 
 
-def get_url():
+def get_url() -> str:
     """Get database URL from environment or config."""
-    return os.getenv("POSTGRES_URL", config.get_main_option("sqlalchemy.url"))
+    default_url = config.get_main_option("sqlalchemy.url")
+    if default_url is None:
+        default_url = "postgresql://postgres:postgres@localhost:5432/market_pulse"
+    return os.getenv("POSTGRES_URL", default_url)
 
 
 def run_migrations_offline() -> None:
@@ -66,18 +69,19 @@ def run_migrations_online() -> None:
 
     """
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = get_url()
-    connectable = engine_from_config(
-        configuration,
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    if configuration is not None:
+        configuration["sqlalchemy.url"] = get_url()
+        connectable = engine_from_config(
+            configuration,
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
+        )
 
-    with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        with connectable.connect() as connection:
+            context.configure(connection=connection, target_metadata=target_metadata)
 
-        with context.begin_transaction():
-            context.run_migrations()
+            with context.begin_transaction():
+                context.run_migrations()
 
 
 if context.is_offline_mode():

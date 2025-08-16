@@ -17,7 +17,8 @@ def db_connection() -> Generator[psycopg.Connection, None, None]:
         yield conn
 
 
-def test_hypertables_exist(db_connection: psycopg.Connection):
+@pytest.mark.integration
+def test_hypertables_exist(db_connection: psycopg.Connection) -> None:
     """Test that hypertables exist for signal and price_bar tables."""
     with db_connection.cursor() as cur:
         # Check if signal table is a hypertable
@@ -29,7 +30,9 @@ def test_hypertables_exist(db_connection: psycopg.Connection):
             );
         """
         )
-        signal_is_hypertable = cur.fetchone()[0]
+        result = cur.fetchone()
+        assert result is not None
+        signal_is_hypertable = result[0]
         assert signal_is_hypertable, "signal table should be a hypertable"
 
         # Check if price_bar table is a hypertable
@@ -41,29 +44,37 @@ def test_hypertables_exist(db_connection: psycopg.Connection):
             );
         """
         )
-        price_bar_is_hypertable = cur.fetchone()[0]
+        result = cur.fetchone()
+        assert result is not None
+        price_bar_is_hypertable = result[0]
         assert price_bar_is_hypertable, "price_bar table should be a hypertable"
 
 
-def test_extensions_enabled(db_connection: psycopg.Connection):
+@pytest.mark.integration
+def test_extensions_enabled(db_connection: psycopg.Connection) -> None:
     """Test that required extensions are enabled."""
     with db_connection.cursor() as cur:
         # Check timescaledb extension
         cur.execute(
             "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'timescaledb');"
         )
-        timescaledb_enabled = cur.fetchone()[0]
+        result = cur.fetchone()
+        assert result is not None
+        timescaledb_enabled = result[0]
         assert timescaledb_enabled, "timescaledb extension should be enabled"
 
         # Check vector extension
         cur.execute(
             "SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector');"
         )
-        vector_enabled = cur.fetchone()[0]
+        result = cur.fetchone()
+        assert result is not None
+        vector_enabled = result[0]
         assert vector_enabled, "vector extension should be enabled"
 
 
-def test_tables_exist(db_connection: psycopg.Connection):
+@pytest.mark.integration
+def test_tables_exist(db_connection: psycopg.Connection) -> None:
     """Test that all required tables exist."""
     required_tables = [
         "article",
@@ -84,5 +95,7 @@ def test_tables_exist(db_connection: psycopg.Connection):
             """,
                 (table_name,),
             )
-            table_exists = cur.fetchone()[0]
+            result = cur.fetchone()
+            assert result is not None
+            table_exists = result[0]
             assert table_exists, f"Table {table_name} should exist"
