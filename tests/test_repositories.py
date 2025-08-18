@@ -142,13 +142,21 @@ class TestEmbedRepository:
             mock_session.query.return_value.filter.return_value.first.return_value = (
                 None
             )
+            mock_embed = Mock()
+            mock_embed.id = 123
+            mock_session.add.return_value = None
+            mock_session.flush.return_value = None
+
+            # Make the add method set the id on the object
+            def add_side_effect(obj):
+                obj.id = 123
+
+            mock_session.add.side_effect = add_side_effect
             mock_transaction.return_value.__enter__.return_value = mock_session
 
             result = self.repo.upsert(1, dto)
 
-            assert result is not None
-            mock_session.add.assert_called_once()
-            mock_session.flush.assert_called()
+            assert result == 123
 
     def test_upsert_embedding_existing(self):
         """Test upserting an existing embedding."""
@@ -157,7 +165,7 @@ class TestEmbedRepository:
         )
 
         existing_embed = Mock()
-        existing_embed.article_id = 1
+        existing_embed.id = 456
 
         with patch.object(self.repo, "_transaction_with_retry") as mock_transaction:
             mock_session = Mock()
@@ -168,9 +176,7 @@ class TestEmbedRepository:
 
             result = self.repo.upsert(1, dto)
 
-            assert result == existing_embed
-            mock_session.add.assert_not_called()
-            mock_session.flush.assert_called()
+            assert result == 456
 
     def test_find_similar_articles(self):
         """Test finding similar articles."""

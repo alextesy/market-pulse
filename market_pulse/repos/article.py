@@ -41,9 +41,7 @@ class ArticleRepository(BaseRepository[Article]):
                 article = Article(
                     source=dto.source,
                     url=dto.url,
-                    url_canonical=dto.url,
                     published_at=dto.published_at,
-                    retrieved_at=datetime.now(timezone.utc),
                     title=dto.title,
                     text=dto.text,
                     lang=dto.lang,

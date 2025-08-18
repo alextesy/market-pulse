@@ -8,7 +8,7 @@ logs: ## follow logs
 	docker-compose -f infra/docker-compose.yml logs -f --tail=200
 
 init-db: ## create schema & extensions
-	psql $$POSTGRES_URL -f sql/schema.sql
+	docker exec infra-postgres-1 psql -U postgres -d market_pulse -f /docker-entrypoint-initdb.d/schema.sql
 
 migrate: ## run alembic migrations
 	uv run alembic upgrade head

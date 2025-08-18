@@ -62,23 +62,30 @@ CREATE TABLE IF NOT EXISTS price_bar (
 
 -- Create signal table
 CREATE TABLE IF NOT EXISTS signal (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL,
     ticker TEXT REFERENCES ticker(symbol),
-    ts TIMESTAMPTZ,
+    ts TIMESTAMPTZ NOT NULL,
     sentiment REAL,
     novelty REAL,
     velocity REAL,
     event_tags TEXT[],
-    score REAL
+    score REAL,
+    PRIMARY KEY(id, ts)
 );
 
 -- Create signal_contrib table
 CREATE TABLE IF NOT EXISTS signal_contrib (
-    signal_id BIGINT REFERENCES signal(id) ON DELETE CASCADE,
+    signal_id BIGINT,
+    signal_ts TIMESTAMPTZ,
     article_id BIGINT REFERENCES article(id) ON DELETE CASCADE,
     rank SMALLINT,
-    PRIMARY KEY(signal_id, article_id)
+    PRIMARY KEY(signal_id, signal_ts, article_id),
+    FOREIGN KEY (signal_id, signal_ts) REFERENCES signal(id, ts) ON DELETE CASCADE
 );
+
+-- Create sequences for auto-incrementing IDs
+CREATE SEQUENCE IF NOT EXISTS signal_id_seq;
+ALTER TABLE signal ALTER COLUMN id SET DEFAULT nextval('signal_id_seq');
 
 -- Create TimescaleDB hypertables
 SELECT create_hypertable('price_bar', 'ts', chunk_time_interval => interval '1 day', if_not_exists => TRUE);

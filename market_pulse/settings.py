@@ -103,13 +103,18 @@ class Settings(BaseSettings):
 
 def load_yaml_config(file_path: Path) -> Dict[str, Any]:
     """Load configuration from YAML file."""
+    logging.info(f"Attempting to load YAML config from: {file_path}")
+
     if not file_path.exists():
         logging.warning(f"Config file {file_path} not found")
         return {}
 
     try:
+        logging.info(f"Opening and reading YAML file: {file_path}")
         with open(file_path, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
+            data = yaml.safe_load(f) or {}
+        logging.info(f"Successfully loaded YAML config from {file_path}")
+        return data
     except Exception as e:
         logging.error(f"Failed to load config file {file_path}: {e}")
         return {}
@@ -126,22 +131,33 @@ def load_settings(yaml_paths: Optional[List[str]] = None) -> Settings:
     Returns:
         Configured Settings instance
     """
+    logging.info("Starting to load settings...")
+
     # Collect all YAML overrides
     yaml_overrides = {}
 
     # Load default configs first (lowest precedence)
     # Get config directory from environment or use default
     config_dir = Path(os.environ.get("CONFIG_DIR", "configs"))
+    logging.info(f"Config directory: {config_dir}")
+
     if config_dir.exists():
+        logging.info("Config directory exists, loading configuration files...")
+
         # Load sources config
         sources_path = config_dir / "sources.yaml"
+        logging.info(f"Checking sources config at: {sources_path}")
         if sources_path.exists():
+            logging.info("Loading sources config...")
             sources_data = load_yaml_config(sources_path)
             yaml_overrides["sources"] = sources_data
+            logging.info("Sources config loaded successfully")
 
         # Load scoring config
         scoring_path = config_dir / "scoring.yaml"
+        logging.info(f"Checking scoring config at: {scoring_path}")
         if scoring_path.exists():
+            logging.info("Loading scoring config...")
             scoring_data = load_yaml_config(scoring_path)
             # Update scoring weights from YAML
             if "weights" in scoring_data:
@@ -159,10 +175,13 @@ def load_settings(yaml_paths: Optional[List[str]] = None) -> Settings:
 
             # Store full scoring config
             yaml_overrides["scoring"] = scoring_data
+            logging.info("Scoring config loaded successfully")
 
         # Load logging config
         logging_path = config_dir / "logging.yaml"
+        logging.info(f"Checking logging config at: {logging_path}")
         if logging_path.exists():
+            logging.info("Loading logging config...")
             logging_data = load_yaml_config(logging_path)
             # Configure logging
             try:
@@ -174,9 +193,14 @@ def load_settings(yaml_paths: Optional[List[str]] = None) -> Settings:
                 logging.info("Logging configured from YAML")
             except Exception as e:
                 logging.error(f"Failed to configure logging from YAML: {e}")
+        else:
+            logging.info("No logging config found, using default logging")
+    else:
+        logging.warning(f"Config directory {config_dir} does not exist, using defaults")
 
     # Load custom YAML configurations (higher precedence)
     if yaml_paths:
+        logging.info(f"Loading custom YAML configurations: {yaml_paths}")
         for yaml_path in yaml_paths:
             config_data = load_yaml_config(Path(yaml_path))
             if config_data:
@@ -185,9 +209,12 @@ def load_settings(yaml_paths: Optional[List[str]] = None) -> Settings:
                     yaml_overrides[key] = value
 
     # Create settings (ENV vars take precedence)
+    logging.info("Creating Settings instance...")
     settings = Settings()
+    logging.info("Settings instance created successfully")
 
     # Apply YAML overrides after creation (but don't override ENV vars)
+    logging.info("Applying YAML overrides...")
     for key, value in yaml_overrides.items():
         if hasattr(settings, key):
             # Check if this value was set by environment variable
@@ -199,8 +226,11 @@ def load_settings(yaml_paths: Optional[List[str]] = None) -> Settings:
             setattr(settings, key, value)
 
     # Validate final configuration
+    logging.info("Validating settings...")
     _validate_settings(settings)
+    logging.info("Settings validation completed")
 
+    logging.info("Settings loading completed successfully")
     return settings
 
 

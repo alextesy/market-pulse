@@ -3,22 +3,59 @@
 import os
 from typing import Generator
 
-import psycopg
+import psycopg2
 import pytest
 
 
 @pytest.fixture
-def db_connection() -> Generator[psycopg.Connection, None, None]:
+def db_connection() -> Generator[psycopg2.extensions.connection, None, None]:
     """Create a database connection for testing."""
     url = os.getenv(
         "POSTGRES_URL", "postgresql://postgres:postgres@localhost:5432/market_pulse"
     )
-    with psycopg.connect(url) as conn:
-        yield conn
+    # Parse the URL to get connection parameters
+    if url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "")
+        if "@" in url:
+            auth, rest = url.split("@", 1)
+            if ":" in auth:
+                user, password = auth.split(":", 1)
+            else:
+                user, password = auth, ""
+            if ":" in rest:
+                host_port, database = rest.split("/", 1)
+                if ":" in host_port:
+                    host, port = host_port.split(":", 1)
+                else:
+                    host, port = host_port, "5432"
+            else:
+                host, port, database = rest, "5432", ""
+        else:
+            user, password, host, port, database = (
+                "",
+                "",
+                "localhost",
+                "5432",
+                "market_pulse",
+            )
+    else:
+        user, password, host, port, database = (
+            "postgres",
+            "postgres",
+            "localhost",
+            "5432",
+            "market_pulse",
+        )
+
+    conn = psycopg2.connect(
+        host=host, port=port, database=database, user=user, password=password
+    )
+    yield conn
+    conn.close()
 
 
 @pytest.mark.integration
-def test_hypertables_exist(db_connection: psycopg.Connection) -> None:
+def test_hypertables_exist(db_connection: psycopg2.extensions.connection) -> None:
     """Test that hypertables exist for signal and price_bar tables."""
     with db_connection.cursor() as cur:
         # Check if signal table is a hypertable
@@ -51,7 +88,7 @@ def test_hypertables_exist(db_connection: psycopg.Connection) -> None:
 
 
 @pytest.mark.integration
-def test_extensions_enabled(db_connection: psycopg.Connection) -> None:
+def test_extensions_enabled(db_connection: psycopg2.extensions.connection) -> None:
     """Test that required extensions are enabled."""
     with db_connection.cursor() as cur:
         # Check timescaledb extension
@@ -74,7 +111,7 @@ def test_extensions_enabled(db_connection: psycopg.Connection) -> None:
 
 
 @pytest.mark.integration
-def test_tables_exist(db_connection: psycopg.Connection) -> None:
+def test_tables_exist(db_connection: psycopg2.extensions.connection) -> None:
     """Test that all required tables exist."""
     required_tables = [
         "article",
