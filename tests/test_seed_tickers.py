@@ -310,7 +310,12 @@ class TestTickerSeeding:
     @pytest.mark.integration
     def test_database_seeding(self):
         """Test database seeding (integration test)."""
+        from market_pulse.db import test_connection
         from market_pulse.repos import TickerRepository
+
+        # Skip if database not available
+        if not test_connection():
+            pytest.skip("Database connection not available")
 
         tickers = [
             {
