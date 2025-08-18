@@ -51,14 +51,12 @@ class Article(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     source: Mapped[str] = mapped_column(Text, nullable=False)
     url: Mapped[Optional[str]] = mapped_column(Text, unique=True)
-    url_canonical: Mapped[Optional[str]] = mapped_column(Text)
     published_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    retrieved_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
     title: Mapped[Optional[str]] = mapped_column(Text)
     text: Mapped[Optional[str]] = mapped_column(Text)
     lang: Mapped[Optional[str]] = mapped_column(Text)
     hash: Mapped[Optional[str]] = mapped_column(Text)
-    credibility: Mapped[Optional[int]] = mapped_column(SmallInteger)
+    credibility: Mapped[Optional[float]] = mapped_column(Float)
 
     # Relationships
     tickers: Mapped[List["ArticleTicker"]] = relationship(
@@ -77,12 +75,11 @@ class ArticleEmbed(Base):
 
     __tablename__ = "article_embed"
 
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     article_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("article.id", ondelete="CASCADE"), primary_key=True
+        BigInteger, ForeignKey("article.id", ondelete="CASCADE")
     )
     embedding: Mapped[List[float]] = mapped_column(VECTOR(384), nullable=False)
-    model: Mapped[str] = mapped_column(Text, nullable=False)
-    dims: Mapped[int] = mapped_column(SmallInteger, nullable=False)
 
     # Relationships
     article_rel: Mapped["Article"] = relationship(back_populates="embedding")
@@ -127,8 +124,9 @@ class PriceBar(Base):
 
     __tablename__ = "price_bar"
 
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     ticker: Mapped[str] = mapped_column(
-        String(10), ForeignKey("ticker.symbol"), primary_key=True
+        String(10), ForeignKey("ticker.symbol"), nullable=False
     )
     ts: Mapped[datetime] = mapped_column(DateTime, primary_key=True)
     o: Mapped[Optional[float]] = mapped_column(Float)
@@ -136,7 +134,7 @@ class PriceBar(Base):
     l: Mapped[Optional[float]] = mapped_column(Float)
     c: Mapped[Optional[float]] = mapped_column(Float)
     v: Mapped[Optional[int]] = mapped_column(BigInteger)
-    timeframe: Mapped[str] = mapped_column(Text, primary_key=True)
+    timeframe: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Relationships
     ticker_rel: Mapped["Ticker"] = relationship(back_populates="price_bars")
@@ -156,7 +154,7 @@ class Signal(Base):
     ticker: Mapped[str] = mapped_column(
         String(10), ForeignKey("ticker.symbol"), nullable=False
     )
-    ts: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    ts: Mapped[datetime] = mapped_column(DateTime, primary_key=True)
     sentiment: Mapped[Optional[float]] = mapped_column(Float)
     novelty: Mapped[Optional[float]] = mapped_column(Float)
     velocity: Mapped[Optional[float]] = mapped_column(Float)
@@ -165,9 +163,6 @@ class Signal(Base):
 
     # Relationships
     ticker_rel: Mapped["Ticker"] = relationship(back_populates="signals")
-    contributions: Mapped[List["SignalContrib"]] = relationship(
-        back_populates="signal_rel", cascade="all, delete-orphan"
-    )
 
     # Index for time-series queries
     __table_args__ = (
@@ -180,14 +175,12 @@ class SignalContrib(Base):
 
     __tablename__ = "signal_contrib"
 
-    signal_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("signal.id", ondelete="CASCADE"), primary_key=True
-    )
+    signal_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    signal_ts: Mapped[datetime] = mapped_column(DateTime, primary_key=True)
     article_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("article.id", ondelete="CASCADE"), primary_key=True
     )
     rank: Mapped[Optional[int]] = mapped_column(SmallInteger)
 
-    # Relationships
-    signal_rel: Mapped["Signal"] = relationship(back_populates="contributions")
+    # Relationships - simplified to avoid complex composite foreign key issues
     article_rel: Mapped["Article"] = relationship(back_populates="signal_contributions")

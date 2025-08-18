@@ -94,38 +94,52 @@ class SignalRepository(BaseRepository[Signal]):
 
             return query.order_by(desc(Signal.ts)).limit(limit).all()
 
-    def get_signal_with_contributions(self, signal_id: int) -> Optional[Dict[str, Any]]:
+    def get_signal_with_contributions(self, signal_id: int, signal_ts: datetime) -> Optional[Dict[str, Any]]:
         """Get signal with its contributing articles."""
         with get_db_session_readonly() as session:
-            signal = session.query(Signal).filter(Signal.id == signal_id).first()
+            signal = session.query(Signal).filter(
+                and_(Signal.id == signal_id, Signal.ts == signal_ts)
+            ).first()
             if not signal:
                 return None
 
             contributions = (
                 session.query(SignalContrib)
-                .filter(SignalContrib.signal_id == signal_id)
+                .filter(
+                    and_(SignalContrib.signal_id == signal_id, SignalContrib.signal_ts == signal_ts)
+                )
                 .order_by(SignalContrib.rank)
                 .all()
             )
 
             return {"signal": signal, "contributions": contributions}
 
-    def add_signal_contribution(self, dto: SignalContribDTO) -> SignalContrib:
+    def add_signal_contribution(self, dto: SignalContribDTO) -> int:
         """Add a contribution to a signal."""
         with self._transaction_with_retry() as session:
+            # Get the signal to get its timestamp
+            signal = session.query(Signal).filter(Signal.id == dto.signal_id).first()
+            if not signal:
+                raise ValueError(f"Signal with id {dto.signal_id} not found")
+            
             contrib = SignalContrib(
-                signal_id=dto.signal_id, article_id=dto.article_id, rank=dto.rank
+                signal_id=dto.signal_id,
+                signal_ts=signal.ts,
+                article_id=dto.article_id,
+                rank=dto.rank
             )
             session.add(contrib)
             session.flush()
-            return contrib
+            return contrib.signal_id  # Return the signal_id as identifier
 
-    def get_signal_contributions(self, signal_id: int) -> List[SignalContrib]:
+    def get_signal_contributions(self, signal_id: int, signal_ts: datetime) -> List[SignalContrib]:
         """Get all contributions for a signal."""
         with get_db_session_readonly() as session:
             return (
                 session.query(SignalContrib)
-                .filter(SignalContrib.signal_id == signal_id)
+                .filter(
+                    and_(SignalContrib.signal_id == signal_id, SignalContrib.signal_ts == signal_ts)
+                )
                 .order_by(SignalContrib.rank)
                 .all()
             )
@@ -205,3 +219,8 @@ class SignalRepository(BaseRepository[Signal]):
                 .delete()
             )
             return result
+
+    def get_by_id(self, signal_id: int) -> Optional[Signal]:
+        """Get signal by ID (ignoring timestamp part of composite key)."""
+        with get_db_session_readonly() as session:
+            return session.query(Signal).filter(Signal.id == signal_id).first()

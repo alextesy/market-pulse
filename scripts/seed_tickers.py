@@ -8,6 +8,7 @@ Implements cleaning rules and alias generation as specified in requirements.
 import csv
 import logging
 import re
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -17,8 +18,10 @@ from urllib.request import urlopen
 import pandas as pd
 import yaml
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
 
 from market_pulse.db.session import get_db_session
+from market_pulse.db.session import test_connection
 from market_pulse.repos.ticker import TickerRepository
 from market_pulse.settings import get_settings
 
@@ -77,7 +80,9 @@ def download_nasdaq_data() -> pd.DataFrame:
     """Download NASDAQ ticker data."""
     logger.info("Downloading NASDAQ ticker data...")
     try:
+        logger.info(f"Attempting to download from: {NASDAQ_URL}")
         df = pd.read_csv(NASDAQ_URL, sep="|")
+        logger.info("Successfully downloaded NASDAQ data")
 
         # Check that data is not null
         if df.empty:
@@ -99,7 +104,9 @@ def download_nyse_data() -> pd.DataFrame:
     """Download NYSE ticker data."""
     logger.info("Downloading NYSE ticker data...")
     try:
+        logger.info(f"Attempting to download from: {NYSE_URL}")
         df = pd.read_csv(NYSE_URL, sep="|")
+        logger.info("Successfully downloaded NYSE data")
 
         # Check that data is not null
         if df.empty:
@@ -121,8 +128,11 @@ def download_sp500_data() -> pd.DataFrame:
     """Download S&P 500 data from Wikipedia."""
     logger.info("Downloading S&P 500 data...")
     try:
+        logger.info(f"Attempting to download from: {SP500_URL}")
         # Read S&P 500 table from Wikipedia
         tables = pd.read_html(SP500_URL)
+        logger.info("Successfully downloaded S&P 500 data")
+        
         if tables:
             df = tables[0]  # First table contains the ticker data
             # Rename columns to match our expected format
@@ -147,6 +157,7 @@ def download_sec_cik_data() -> Dict[str, str]:
         import json
         import urllib.request
 
+        logger.info(f"Attempting to download from: {SEC_CIK_URL}")
         headers = {
             "User-Agent": "MarketPulseBot/1.0 (alex@example.com)",  # include email
             "Accept": "application/json",
@@ -154,6 +165,7 @@ def download_sec_cik_data() -> Dict[str, str]:
         req = urllib.request.Request(SEC_CIK_URL, headers=headers)
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.load(resp)
+        logger.info("Successfully downloaded SEC CIK data")
 
         # data is dict keyed by "0","1",... each with {"cik_str","ticker","title"}
         cik_map = {
@@ -440,7 +452,7 @@ def seed_database(tickers: List[Dict]) -> bool:
     try:
         # Clear existing data (optional - comment out if you want to preserve)
         with get_db_session() as session:
-            session.execute("DELETE FROM ticker")
+            session.execute(text("DELETE FROM ticker"))
             session.commit()
 
         # Bulk insert tickers
@@ -448,7 +460,7 @@ def seed_database(tickers: List[Dict]) -> bool:
 
         # Verify insertion
         with get_db_session() as session:
-            count = session.execute("SELECT COUNT(*) FROM ticker").scalar()
+            count = session.execute(text("SELECT COUNT(*) FROM ticker")).scalar()
             logger.info(f"Successfully seeded {count} tickers in database")
 
         return True
@@ -457,42 +469,76 @@ def seed_database(tickers: List[Dict]) -> bool:
         return False
 
 
+def verify_database_connection() -> bool:
+    """Quickly verify database connectivity before heavy work."""
+    try:
+        db_url = os.getenv("POSTGRES_URL", "postgresql://localhost/market_pulse")
+        redacted = db_url.replace(db_url.split("@")[0], "postgresql://***:***") if "@" in db_url else db_url
+        logger.info(f"Verifying database connection to: {redacted}")
+    except Exception:
+        logger.info("Verifying database connection...")
+
+    ok = test_connection()
+    if not ok:
+        logger.error(
+            "Database not reachable. Ensure POSTGRES_URL is set and the database is up (make up)."
+        )
+    return ok
+
+
 def main() -> int:
     """Main function for ticker seeding."""
     logger.info("Starting ticker seeding process...")
 
     # Get settings
+    logger.info("Loading settings...")
     settings = get_settings()
+    logger.info("Settings loaded successfully")
+
+    # Verify DB connectivity early
+    if not verify_database_connection():
+        return 1
 
     # Create output directory
     output_dir = Path("data/tickers")
+    logger.info(f"Output directory: {output_dir}")
 
     try:
         # Process ticker data
+        logger.info("Starting to process ticker data...")
         tickers = process_ticker_data()
+        logger.info(f"Finished processing ticker data, got {len(tickers) if tickers else 0} tickers")
 
         if not tickers:
             logger.error("No ticker data processed")
             return 1
 
         # Validate data
+        logger.info("Starting ticker validation...")
         if not validate_tickers(tickers):
             logger.error("Ticker validation failed")
             return 1
+        logger.info("Ticker validation passed")
 
         # Save to CSV
+        logger.info("Saving tickers to CSV...")
         save_to_csv(tickers, output_dir)
+        logger.info("CSV files saved successfully")
 
         # Seed database
+        logger.info("Starting database seeding...")
         if not seed_database(tickers):
             logger.error("Database seeding failed")
             return 1
+        logger.info("Database seeding completed successfully")
 
         logger.info("Ticker seeding completed successfully")
         return 0
 
     except Exception as e:
         logger.error(f"Ticker seeding failed: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return 1
 
 

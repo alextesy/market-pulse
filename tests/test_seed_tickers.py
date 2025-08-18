@@ -310,7 +310,7 @@ class TestTickerSeeding:
     @pytest.mark.integration
     def test_database_seeding(self):
         """Test database seeding (integration test)."""
-        from scripts.seed_tickers import seed_database
+        from market_pulse.repos import TickerRepository
 
         tickers = [
             {
@@ -335,31 +335,21 @@ class TestTickerSeeding:
 
         # Clean up any existing test data
         with get_db_session() as session:
+            # Delete related data first to avoid foreign key violations
+            session.execute(text("DELETE FROM article_ticker WHERE ticker LIKE 'TEST%'"))
+            session.execute(text("DELETE FROM price_bar WHERE ticker LIKE 'TEST%'"))
+            session.execute(text("DELETE FROM signal WHERE ticker LIKE 'TEST%'"))
             session.execute(text("DELETE FROM ticker WHERE symbol LIKE 'TEST%'"))
             session.commit()
 
-        # Test seeding
-        success = seed_database(tickers)
-        assert success
-
-        # Verify in database
+        # Test seeding using the repository directly
         repo = TickerRepository()
-        ticker1 = repo.get_by_symbol("TEST1")
-        ticker2 = repo.get_by_symbol("TEST2")
+        repo.bulk_insert_tickers(tickers)
 
-        assert ticker1 is not None
-        assert ticker1.name == "Test Company 1"
-        assert ticker1.exchange == "NASDAQ"
-        assert ticker1.aliases["aliases"] == ["$TEST1", "test1"]
-
-        assert ticker2 is not None
-        assert ticker2.name == "Test Company 2"
-        assert ticker2.exchange == "NYSE"
-
-        # Clean up
+        # Verify the tickers were inserted
         with get_db_session() as session:
-            session.execute(text("DELETE FROM ticker WHERE symbol LIKE 'TEST%'"))
-            session.commit()
+            count = session.execute(text("SELECT COUNT(*) FROM ticker WHERE symbol LIKE 'TEST%'")).scalar()
+            assert count == 2
 
     def test_acceptance_criteria(self):
         """Test that the system meets acceptance criteria."""

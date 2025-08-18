@@ -17,7 +17,7 @@ class EmbedRepository(BaseRepository[ArticleEmbed]):
     def __init__(self):
         super().__init__(ArticleEmbed)
 
-    def upsert(self, article_id: int, dto: EmbeddingDTO) -> ArticleEmbed:
+    def upsert(self, article_id: int, dto: EmbeddingDTO) -> int:
         """Upsert embedding for an article."""
         with self._transaction_with_retry() as session:
             # Try to find existing embedding
@@ -30,21 +30,17 @@ class EmbedRepository(BaseRepository[ArticleEmbed]):
             if existing:
                 # Update existing embedding
                 existing.embedding = dto.embedding
-                existing.model = dto.model
-                existing.dims = dto.dims
                 session.flush()
-                return existing
+                return existing.id
             else:
                 # Create new embedding
                 embed = ArticleEmbed(
                     article_id=article_id,
                     embedding=dto.embedding,
-                    model=dto.model,
-                    dims=dto.dims,
                 )
                 session.add(embed)
                 session.flush()
-                return embed
+                return embed.id
 
     def get_by_article_id(self, article_id: int) -> Optional[ArticleEmbed]:
         """Get embedding by article ID."""
@@ -60,16 +56,20 @@ class EmbedRepository(BaseRepository[ArticleEmbed]):
     ) -> List[Tuple[ArticleEmbed, float]]:
         """Find articles with similar embeddings using cosine similarity."""
         with get_db_session_readonly() as session:
-            # Use vector cosine similarity
+            # Use raw SQL with proper vector casting
             query = (
                 session.query(
                     ArticleEmbed,
-                    func.cosine_similarity(ArticleEmbed.embedding, embedding).label(
-                        "similarity"
-                    ),
+                    (1 - func.cosine_distance(
+                        ArticleEmbed.embedding, 
+                        text(f"'{embedding}'::vector")
+                    )).label("similarity"),
                 )
                 .filter(
-                    func.cosine_similarity(ArticleEmbed.embedding, embedding)
+                    (1 - func.cosine_distance(
+                        ArticleEmbed.embedding, 
+                        text(f"'{embedding}'::vector")
+                    ))
                     > threshold
                 )
                 .order_by(text("similarity DESC"))
@@ -96,16 +96,16 @@ class EmbedRepository(BaseRepository[ArticleEmbed]):
             query = (
                 session.query(
                     ArticleEmbed,
-                    func.cosine_similarity(
+                    (1 - func.cosine_distance(
                         ArticleEmbed.embedding, source_embed.embedding
-                    ).label("similarity"),
+                    )).label("similarity"),
                 )
                 .filter(
                     and_(
                         ArticleEmbed.article_id != article_id,
-                        func.cosine_similarity(
+                        (1 - func.cosine_distance(
                             ArticleEmbed.embedding, source_embed.embedding
-                        )
+                        ))
                         > threshold,
                     )
                 )
@@ -146,8 +146,6 @@ class EmbedRepository(BaseRepository[ArticleEmbed]):
                 embed = ArticleEmbed(
                     article_id=dto.article_id,
                     embedding=dto.embedding,
-                    model=dto.model,
-                    dims=dto.dims,
                 )
                 embed_objects.append(embed)
 
