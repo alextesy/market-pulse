@@ -189,8 +189,14 @@ jobs:
           psql $POSTGRES_URL -c "CREATE EXTENSION IF NOT EXISTS vector;"
           psql $POSTGRES_URL -c "CREATE EXTENSION IF NOT EXISTS timescaledb;"
           
-          # Run schema creation (ignore warnings from hypertable unique index issues)
-          psql $POSTGRES_URL -f sql/schema.sql || echo "Schema initialized (some warnings expected)"
+          # Run schema creation (continue on errors from hypertable creation issues)
+          psql $POSTGRES_URL -f sql/schema.sql || echo "Schema initialized with some warnings (expected for hypertable creation)"
+          
+          # Verify essential tables exist
+          psql $POSTGRES_URL -c "SELECT tablename FROM pg_tables WHERE schemaname = 'public';" | grep -E "(ticker|article|price_bar)" || {
+            echo "Error: Core tables not created properly"
+            exit 1
+          }
 
       - name: Run integration tests
         env:
