@@ -435,11 +435,11 @@ class TestTickerSeeding:
     def test_linker_alias_map(self):
         """Test that the linker can fetch alias map."""
         from market_pulse.db import test_connection
-        
+
         # Skip if database not available
         if not test_connection():
             pytest.skip("Database connection not available")
-            
+
         repo = TickerRepository()
 
         # Add some test data
@@ -458,7 +458,9 @@ class TestTickerSeeding:
         # Clean up any existing test data
         with get_db_session() as session:
             # Delete related data first to avoid foreign key violations
-            session.execute(text("DELETE FROM article_ticker WHERE ticker LIKE 'TEST%'"))
+            session.execute(
+                text("DELETE FROM article_ticker WHERE ticker LIKE 'TEST%'")
+            )
             session.execute(text("DELETE FROM price_bar WHERE ticker LIKE 'TEST%'"))
             session.execute(text("DELETE FROM signal WHERE ticker LIKE 'TEST%'"))
             session.execute(text("DELETE FROM ticker WHERE symbol LIKE 'TEST%'"))
@@ -480,7 +482,9 @@ class TestTickerSeeding:
         # Clean up
         with get_db_session() as session:
             # Delete related data first to avoid foreign key violations
-            session.execute(text("DELETE FROM article_ticker WHERE ticker LIKE 'TEST%'"))
+            session.execute(
+                text("DELETE FROM article_ticker WHERE ticker LIKE 'TEST%'")
+            )
             session.execute(text("DELETE FROM price_bar WHERE ticker LIKE 'TEST%'"))
             session.execute(text("DELETE FROM signal WHERE ticker LIKE 'TEST%'"))
             session.execute(text("DELETE FROM ticker WHERE symbol LIKE 'TEST%'"))
