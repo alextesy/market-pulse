@@ -104,7 +104,7 @@ class Settings(BaseSettings):
 def load_yaml_config(file_path: Path) -> Dict[str, Any]:
     """Load configuration from YAML file."""
     logging.info(f"Attempting to load YAML config from: {file_path}")
-    
+
     if not file_path.exists():
         logging.warning(f"Config file {file_path} not found")
         return {}
@@ -132,7 +132,7 @@ def load_settings(yaml_paths: Optional[List[str]] = None) -> Settings:
         Configured Settings instance
     """
     logging.info("Starting to load settings...")
-    
+
     # Collect all YAML overrides
     yaml_overrides = {}
 
@@ -140,10 +140,10 @@ def load_settings(yaml_paths: Optional[List[str]] = None) -> Settings:
     # Get config directory from environment or use default
     config_dir = Path(os.environ.get("CONFIG_DIR", "configs"))
     logging.info(f"Config directory: {config_dir}")
-    
+
     if config_dir.exists():
         logging.info("Config directory exists, loading configuration files...")
-        
+
         # Load sources config
         sources_path = config_dir / "sources.yaml"
         logging.info(f"Checking sources config at: {sources_path}")

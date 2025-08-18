@@ -146,9 +146,11 @@ class TestEmbedRepository:
             mock_embed.id = 123
             mock_session.add.return_value = None
             mock_session.flush.return_value = None
+
             # Make the add method set the id on the object
             def add_side_effect(obj):
                 obj.id = 123
+
             mock_session.add.side_effect = add_side_effect
             mock_transaction.return_value.__enter__.return_value = mock_session
 

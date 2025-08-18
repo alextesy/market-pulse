@@ -60,16 +60,20 @@ class EmbedRepository(BaseRepository[ArticleEmbed]):
             query = (
                 session.query(
                     ArticleEmbed,
-                    (1 - func.cosine_distance(
-                        ArticleEmbed.embedding, 
-                        text(f"'{embedding}'::vector")
-                    )).label("similarity"),
+                    (
+                        1
+                        - func.cosine_distance(
+                            ArticleEmbed.embedding, text(f"'{embedding}'::vector")
+                        )
+                    ).label("similarity"),
                 )
                 .filter(
-                    (1 - func.cosine_distance(
-                        ArticleEmbed.embedding, 
-                        text(f"'{embedding}'::vector")
-                    ))
+                    (
+                        1
+                        - func.cosine_distance(
+                            ArticleEmbed.embedding, text(f"'{embedding}'::vector")
+                        )
+                    )
                     > threshold
                 )
                 .order_by(text("similarity DESC"))
@@ -96,16 +100,22 @@ class EmbedRepository(BaseRepository[ArticleEmbed]):
             query = (
                 session.query(
                     ArticleEmbed,
-                    (1 - func.cosine_distance(
-                        ArticleEmbed.embedding, source_embed.embedding
-                    )).label("similarity"),
+                    (
+                        1
+                        - func.cosine_distance(
+                            ArticleEmbed.embedding, source_embed.embedding
+                        )
+                    ).label("similarity"),
                 )
                 .filter(
                     and_(
                         ArticleEmbed.article_id != article_id,
-                        (1 - func.cosine_distance(
-                            ArticleEmbed.embedding, source_embed.embedding
-                        ))
+                        (
+                            1
+                            - func.cosine_distance(
+                                ArticleEmbed.embedding, source_embed.embedding
+                            )
+                        )
                         > threshold,
                     )
                 )

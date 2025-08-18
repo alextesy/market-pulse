@@ -336,7 +336,9 @@ class TestTickerSeeding:
         # Clean up any existing test data
         with get_db_session() as session:
             # Delete related data first to avoid foreign key violations
-            session.execute(text("DELETE FROM article_ticker WHERE ticker LIKE 'TEST%'"))
+            session.execute(
+                text("DELETE FROM article_ticker WHERE ticker LIKE 'TEST%'")
+            )
             session.execute(text("DELETE FROM price_bar WHERE ticker LIKE 'TEST%'"))
             session.execute(text("DELETE FROM signal WHERE ticker LIKE 'TEST%'"))
             session.execute(text("DELETE FROM ticker WHERE symbol LIKE 'TEST%'"))
@@ -348,7 +350,9 @@ class TestTickerSeeding:
 
         # Verify the tickers were inserted
         with get_db_session() as session:
-            count = session.execute(text("SELECT COUNT(*) FROM ticker WHERE symbol LIKE 'TEST%'")).scalar()
+            count = session.execute(
+                text("SELECT COUNT(*) FROM ticker WHERE symbol LIKE 'TEST%'")
+            ).scalar()
             assert count == 2
 
     def test_acceptance_criteria(self):

@@ -31,16 +31,24 @@ def db_connection() -> Generator[psycopg2.extensions.connection, None, None]:
             else:
                 host, port, database = rest, "5432", ""
         else:
-            user, password, host, port, database = "", "", "localhost", "5432", "market_pulse"
+            user, password, host, port, database = (
+                "",
+                "",
+                "localhost",
+                "5432",
+                "market_pulse",
+            )
     else:
-        user, password, host, port, database = "postgres", "postgres", "localhost", "5432", "market_pulse"
-    
+        user, password, host, port, database = (
+            "postgres",
+            "postgres",
+            "localhost",
+            "5432",
+            "market_pulse",
+        )
+
     conn = psycopg2.connect(
-        host=host,
-        port=port,
-        database=database,
-        user=user,
-        password=password
+        host=host, port=port, database=database, user=user, password=password
     )
     yield conn
     conn.close()

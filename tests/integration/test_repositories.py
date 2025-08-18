@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy import text
 
-from market_pulse.db import create_tables, drop_tables, test_connection, get_db_session
+from market_pulse.db import get_db_session, test_connection
 from market_pulse.models.dto import (
     ArticleDTO,
     EmbeddingDTO,
@@ -210,12 +210,20 @@ class TestTickerRepository:
         # Clean up any existing test data
         with get_db_session() as session:
             # Delete related data first to avoid foreign key violations
-            session.execute(text("DELETE FROM article_ticker WHERE ticker IN ('AAPL', 'GOOGL')"))
-            session.execute(text("DELETE FROM price_bar WHERE ticker IN ('AAPL', 'GOOGL')"))
-            session.execute(text("DELETE FROM signal WHERE ticker IN ('AAPL', 'GOOGL')"))
-            session.execute(text("DELETE FROM ticker WHERE symbol IN ('AAPL', 'GOOGL')"))
+            session.execute(
+                text("DELETE FROM article_ticker WHERE ticker IN ('AAPL', 'GOOGL')")
+            )
+            session.execute(
+                text("DELETE FROM price_bar WHERE ticker IN ('AAPL', 'GOOGL')")
+            )
+            session.execute(
+                text("DELETE FROM signal WHERE ticker IN ('AAPL', 'GOOGL')")
+            )
+            session.execute(
+                text("DELETE FROM ticker WHERE symbol IN ('AAPL', 'GOOGL')")
+            )
             session.commit()
-        
+
         # Create test tickers with aliases
         tickers_data = [
             {
@@ -251,12 +259,22 @@ class TestTickerRepository:
         # Clean up any existing test data
         with get_db_session() as session:
             # Delete related data first to avoid foreign key violations
-            session.execute(text("DELETE FROM article_ticker WHERE ticker IN ('ACTIVE1', 'EXPIRED1')"))
-            session.execute(text("DELETE FROM price_bar WHERE ticker IN ('ACTIVE1', 'EXPIRED1')"))
-            session.execute(text("DELETE FROM signal WHERE ticker IN ('ACTIVE1', 'EXPIRED1')"))
-            session.execute(text("DELETE FROM ticker WHERE symbol IN ('ACTIVE1', 'EXPIRED1')"))
+            session.execute(
+                text(
+                    "DELETE FROM article_ticker WHERE ticker IN ('ACTIVE1', 'EXPIRED1')"
+                )
+            )
+            session.execute(
+                text("DELETE FROM price_bar WHERE ticker IN ('ACTIVE1', 'EXPIRED1')")
+            )
+            session.execute(
+                text("DELETE FROM signal WHERE ticker IN ('ACTIVE1', 'EXPIRED1')")
+            )
+            session.execute(
+                text("DELETE FROM ticker WHERE symbol IN ('ACTIVE1', 'EXPIRED1')")
+            )
             session.commit()
-        
+
         # Create test tickers with validity dates
         now = datetime.now()
         tickers_data = [
@@ -369,9 +387,11 @@ class TestPriceBarRepository:
         """Test bulk insert of price bars."""
         # Clean up any existing test data
         with get_db_session() as session:
-            session.execute(text("DELETE FROM price_bar WHERE ticker = 'AAPL' AND timeframe = '1d'"))
+            session.execute(
+                text("DELETE FROM price_bar WHERE ticker = 'AAPL' AND timeframe = '1d'")
+            )
             session.commit()
-        
+
         # Create test price bars
         now = datetime.now(timezone.utc)
         bars = [
@@ -413,9 +433,13 @@ class TestPriceBarRepository:
         """Test OHLCV data retrieval."""
         # Clean up any existing test data
         with get_db_session() as session:
-            session.execute(text("DELETE FROM price_bar WHERE ticker = 'GOOGL' AND timeframe = '1d'"))
+            session.execute(
+                text(
+                    "DELETE FROM price_bar WHERE ticker = 'GOOGL' AND timeframe = '1d'"
+                )
+            )
             session.commit()
-        
+
         # Create test price bars
         now = datetime.now(timezone.utc)
         bars = [

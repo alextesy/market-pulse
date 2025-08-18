@@ -132,7 +132,7 @@ def download_sp500_data() -> pd.DataFrame:
         # Read S&P 500 table from Wikipedia
         tables = pd.read_html(SP500_URL)
         logger.info("Successfully downloaded S&P 500 data")
-        
+
         if tables:
             df = tables[0]  # First table contains the ticker data
             # Rename columns to match our expected format
@@ -473,7 +473,11 @@ def verify_database_connection() -> bool:
     """Quickly verify database connectivity before heavy work."""
     try:
         db_url = os.getenv("POSTGRES_URL", "postgresql://localhost/market_pulse")
-        redacted = db_url.replace(db_url.split("@")[0], "postgresql://***:***") if "@" in db_url else db_url
+        redacted = (
+            db_url.replace(db_url.split("@")[0], "postgresql://***:***")
+            if "@" in db_url
+            else db_url
+        )
         logger.info(f"Verifying database connection to: {redacted}")
     except Exception:
         logger.info("Verifying database connection...")
@@ -507,7 +511,9 @@ def main() -> int:
         # Process ticker data
         logger.info("Starting to process ticker data...")
         tickers = process_ticker_data()
-        logger.info(f"Finished processing ticker data, got {len(tickers) if tickers else 0} tickers")
+        logger.info(
+            f"Finished processing ticker data, got {len(tickers) if tickers else 0} tickers"
+        )
 
         if not tickers:
             logger.error("No ticker data processed")
@@ -538,6 +544,7 @@ def main() -> int:
     except Exception as e:
         logger.error(f"Ticker seeding failed: {e}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         return 1
 
