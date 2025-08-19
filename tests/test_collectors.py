@@ -328,7 +328,7 @@ class TestRetryDecorator:
 class TestRateLimitedHttpClient:
     """Test rate-limited HTTP client."""
 
-    @patch("httpx.Client")
+    @patch("collectors.retry.httpx.Client")
     def test_client_creation(self, mock_client_class):
         """Test HTTP client creation with proper configuration."""
         mock_client = Mock()
@@ -348,7 +348,7 @@ class TestRateLimitedHttpClient:
         assert client.source_name == "test"
         assert client.rate_limiter.capacity == 60
 
-    @patch("httpx.Client")
+    @patch("collectors.retry.httpx.Client")
     @patch("time.sleep")
     def test_rate_limiting(self, mock_sleep, mock_client_class):
         """Test that rate limiting is enforced."""
