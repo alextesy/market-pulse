@@ -333,11 +333,6 @@ class TestRateLimitedHttpClient:
         mock_client = Mock()
         mock_client_class.return_value = mock_client
         
-        client = RateLimitedHttpClient(
-            source_name="test",
-            rate_limit_per_minute=60,
-            user_agent="TestBot/1.0"
-        )
         
         # Check client was created with correct headers
         mock_client_class.assert_called_once()
