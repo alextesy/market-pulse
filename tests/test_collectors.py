@@ -334,11 +334,19 @@ class TestRateLimitedHttpClient:
         mock_client = Mock()
         mock_client_class.return_value = mock_client
 
+        client = RateLimitedHttpClient(
+            source_name="test", rate_limit_per_minute=60, user_agent="TestBot/1.0"
+        )
+
         # Check client was created with correct headers
         mock_client_class.assert_called_once()
         call_kwargs = mock_client_class.call_args[1]
         assert "User-Agent" in call_kwargs["headers"]
         assert call_kwargs["headers"]["User-Agent"] == "TestBot/1.0"
+
+        # Verify client properties
+        assert client.source_name == "test"
+        assert client.rate_limiter.capacity == 60
 
     @patch("httpx.Client")
     @patch("time.sleep")
