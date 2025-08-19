@@ -11,13 +11,13 @@ from opentelemetry import trace
 
 class StructuredFormatter(logging.Formatter):
     """JSON formatter for structured logging."""
-    
+
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as structured JSON.
-        
+
         Args:
             record: Log record to format
-            
+
         Returns:
             JSON-formatted log string
         """
@@ -28,22 +28,22 @@ class StructuredFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
         }
-        
+
         # Add trace information if available
         span = trace.get_current_span()
         if span.is_recording():
             span_context = span.get_span_context()
             log_entry["trace_id"] = format(span_context.trace_id, "032x")
             log_entry["span_id"] = format(span_context.span_id, "016x")
-        
+
         # Add extra fields from record
         if hasattr(record, "extra") and record.extra:
             log_entry.update(record.extra)
-        
+
         # Add exception info if present
         if record.exc_info:
             log_entry["exception"] = self.formatException(record.exc_info)
-        
+
         # Add source code location for non-INFO levels
         if record.levelno > logging.INFO:
             log_entry["location"] = {
@@ -51,7 +51,7 @@ class StructuredFormatter(logging.Formatter):
                 "line": record.lineno,
                 "function": record.funcName,
             }
-        
+
         return json.dumps(log_entry, separators=(",", ":"))
 
 
@@ -61,7 +61,7 @@ def setup_logging(
     include_stdlib: bool = False,
 ) -> None:
     """Configure structured logging for the application.
-    
+
     Args:
         level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         format_json: Whether to use JSON formatting
@@ -70,24 +70,24 @@ def setup_logging(
     # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(getattr(logging, level.upper()))
-    
+
     # Remove existing handlers
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
-    
+
     # Create console handler
     handler = logging.StreamHandler(sys.stdout)
-    
+
     if format_json:
         formatter = StructuredFormatter()
     else:
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
-    
+
     handler.setFormatter(formatter)
     root_logger.addHandler(handler)
-    
+
     # Configure third-party loggers
     if not include_stdlib:
         # Reduce noise from common libraries
@@ -100,10 +100,10 @@ def setup_logging(
 
 def get_logger(name: str) -> logging.Logger:
     """Get a logger with structured logging capabilities.
-    
+
     Args:
         name: Logger name (typically __name__)
-        
+
     Returns:
         Configured logger instance
     """
@@ -120,7 +120,7 @@ def log_collector_progress(
     errors: int = 0,
 ) -> None:
     """Log structured collector progress information.
-    
+
     Args:
         logger: Logger instance
         source: Source name
@@ -139,8 +139,12 @@ def log_collector_progress(
             "items_processed": items_processed,
             "items_dropped": items_dropped,
             "errors": errors,
-            "success_rate": items_processed / (items_processed + items_dropped) if (items_processed + items_dropped) > 0 else 0.0,
-        }
+            "success_rate": (
+                items_processed / (items_processed + items_dropped)
+                if (items_processed + items_dropped) > 0
+                else 0.0
+            ),
+        },
     )
 
 
@@ -153,7 +157,7 @@ def log_lake_write(
     duration: float,
 ) -> None:
     """Log structured lake write information.
-    
+
     Args:
         logger: Logger instance
         source: Source name
@@ -172,7 +176,7 @@ def log_lake_write(
             "duration": duration,
             "items_per_second": item_count / duration if duration > 0 else 0,
             "bytes_per_second": compressed_bytes / duration if duration > 0 else 0,
-        }
+        },
     )
 
 
@@ -184,7 +188,7 @@ def log_data_quality_issue(
     action: str = "dropped",
 ) -> None:
     """Log structured data quality issue.
-    
+
     Args:
         logger: Logger instance
         source: Source name
@@ -200,7 +204,7 @@ def log_data_quality_issue(
             "validation_errors": validation_errors,
             "action": action,
             "error_count": len(validation_errors),
-        }
+        },
     )
 
 
@@ -214,7 +218,7 @@ def log_pipeline_stage(
     errors: int = 0,
 ) -> None:
     """Log structured pipeline stage completion.
-    
+
     Args:
         logger: Logger instance
         stage: Pipeline stage name
@@ -236,6 +240,5 @@ def log_pipeline_stage(
             "errors": errors,
             "items_per_second": items_in / duration if duration > 0 else 0,
             "success_rate": (items_in - errors) / items_in if items_in > 0 else 0.0,
-        }
+        },
     )
-
