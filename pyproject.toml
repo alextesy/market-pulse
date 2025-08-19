@@ -18,6 +18,11 @@ dependencies = [
     "requests>=2.32.4",
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
+    "httpx>=0.25.0",
+    "boto3>=1.28.0",
+    "prometheus-client>=0.17.0",
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
 ]
 
 [tool.uv]
@@ -31,6 +36,8 @@ dev-dependencies = [
     "bandit",
     "types-PyYAML",
     "ipython>=9.4.0",
+    "moto[s3]>=5.0.0",
+    "pytest-mock>=3.12.0",
 ]
 
 [tool.black]

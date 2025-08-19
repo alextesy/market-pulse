@@ -1,11 +1,95 @@
-gdelt:
-  enabled: true
-  schedule: 'hourly'
-  rate_limit_per_min: 60
-  fields_keep: [url, title, content, lang, published_at]
-sec:
-  enabled: true
-  schedule: 'hourly'
-  forms: [8-K, 10-Q, 10-K]
-stocktwits:
-  enabled: false  # enable later
+# Data sources configuration for Market Pulse collectors
+sources:
+  gdelt:
+    enabled: true
+    schedule: 'hourly'
+    rate_limit_per_min: 60
+    fields_keep: [url, title, content, lang, published_at]
+    url: "http://data.gdeltproject.org/gdeltv2/lastupdate.txt"
+    timeout: 30
+    user_agent: "MarketPulseBot/0.1 (contact: admin@example.com)"
+    retry_attempts: 5
+    retry_backoff: "exponential_jitter"
+  
+  sec:
+    enabled: true
+    schedule: 'hourly'
+    forms: [8-K, 10-Q, 10-K]
+    url: "https://www.sec.gov/cgi-bin/browse-edgar"
+    rate_limit_per_min: 10
+    timeout: 30
+    user_agent: "MarketPulseBot/0.1 (contact: admin@example.com)"
+    retry_attempts: 5
+    retry_backoff: "exponential_jitter"
+  
+  stocktwits:
+    enabled: false  # enable later
+    base_url: "https://api.stocktwits.com/api/2"
+    rate_limit_per_min: 200
+    timeout: 30
+    user_agent: "MarketPulseBot/0.1 (contact: admin@example.com)"
+    retry_attempts: 3
+    retry_backoff: "exponential_jitter"
+  
+  noop:
+    enabled: true
+    items_per_hour: 30
+    user_agent: "MarketPulseBot/0.1 (contact: admin@example.com)"
+
+# Lake storage configuration
+lake:
+  bucket: "market-pulse-raw"
+  endpoint_url: "http://localhost:9000"  # MinIO endpoint
+  region: "us-east-1"
+  
+  # Shard rotation settings
+  max_items_per_shard: 5000
+  max_bytes_per_shard: 52428800  # 50MB
+  max_age_seconds: 120
+  
+  # Deduplication settings
+  enable_dedupe: true
+  bloom_filter_size: 100000
+  bloom_hash_count: 5
+  
+  # Cleanup settings
+  temp_cleanup_interval_hours: 1
+
+# Data quality settings
+data_quality:
+  min_text_length: 10
+  max_text_length: 20000
+  valid_languages:
+    - "en"
+    - "es"
+    - "fr"
+    - "de"
+    - "pt"
+    - "zh"
+    - "ja"
+  
+  # URL validation
+  allowed_url_schemes:
+    - "http"
+    - "https"
+  
+  suspicious_url_patterns:
+    - "localhost"
+    - "127\\.0\\.0\\.1"
+    - "\\.test$"
+    - "\\.local$"
+    - "example\\.com"
+
+# Observability settings
+observability:
+  metrics:
+    enabled: true
+    port: 8080
+    
+  logging:
+    level: "INFO"
+    format: "json"
+    structured: true
+    
+  tracing:
+    enabled: false  # Set to true for OpenTelemetry tracing
