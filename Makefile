@@ -17,9 +17,19 @@ seed-tickers: ## seed ticker data
 	uv run python -m scripts.seed_tickers
 
 ingest: ## run all collectors once
-	uv run python -m collectors.gdelt && \
-	uv run python -m collectors.sec && \
-	uv run python -m collectors.stocktwits
+	uv run python -m collectors.runner --hours=1
+
+ingest-noop: ## run noop collector for testing
+	uv run python -m collectors.runner --source=noop --hours=2
+
+demo-collectors: ## run collector demo (requires MinIO running)
+	uv run python examples/collector_example.py --demo=full --hours=2
+
+demo-interface: ## demo collector interface
+	uv run python examples/collector_example.py --demo=interface
+
+demo-validation: ## demo data quality validation
+	uv run python examples/collector_example.py --demo=validation
 
 score: ## recompute signals for last N hours
 	uv run python -m pipelines.scorer --hours 24
@@ -30,6 +40,9 @@ backtest: ## run backtest
 # CI and testing commands
 test: ## run unit tests (excluding integration tests)
 	uv run pytest --ignore=tests/integration/
+
+test-collectors: ## run collector-specific tests
+	uv run pytest tests/test_collectors.py -v
 
 test-integration: ## run integration tests (requires database)
 	uv run pytest -m integration

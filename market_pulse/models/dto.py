@@ -14,7 +14,7 @@ TickerStr = Annotated[str, StringConstraints(pattern=r"^[A-Z.\-]{1,10}$")]
 class IngestItem(BaseModel):
     """Raw item coming from collectors (source-agnostic)."""
 
-    source: Literal["gdelt", "sec", "stocktwits", "twitter", "reddit"]
+    source: Literal["gdelt", "sec", "stocktwits", "twitter", "reddit", "noop"]
     source_id: Optional[str] = None  # e.g., GDELT URLHash, SEC accession
     url: AnyUrl
     published_at: datetime  # Must be timezone-aware
