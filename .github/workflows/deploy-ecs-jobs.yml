@@ -1,0 +1,72 @@
+name: Deploy ECS Jobs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  TF_WORKING_DIR: infra/terraform/ecs-jobs
+
+jobs:
+  deploy-ecs-jobs:
+    name: Deploy ECS Scheduled Jobs
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Initialize Terraform
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -input=false
+
+      - name: Import existing schedules
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          set -euo pipefail
+          schedules=(
+            "aws_scheduler_schedule.daily_historical_append market-pulse-daily-historical-append"
+            "aws_scheduler_schedule.hourly_historical_append market-pulse-hourly-historical-append"
+          )
+
+          for entry in "${schedules[@]}"; do
+            resource="${entry%% *}"
+            schedule_name="${entry##* }"
+
+            if aws scheduler get-schedule --name "$schedule_name" --region "$AWS_REGION" >/dev/null 2>&1; then
+              if ! terraform state show "$resource" >/dev/null 2>&1; then
+                echo "Importing existing schedule $schedule_name into state as $resource"
+                terraform import "$resource" "$schedule_name"
+              else
+                echo "Schedule $schedule_name already managed in state"
+              fi
+            else
+              echo "Schedule $schedule_name does not exist in AWS; skipping import"
+            fi
+          done
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform plan -input=false
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -input=false -auto-approve
